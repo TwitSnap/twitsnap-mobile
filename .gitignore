@@ -33,3 +33,9 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# IDE files
+.idea/
+
+# Dolphin FM files
+.directory
