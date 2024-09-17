@@ -12,7 +12,7 @@ const LoginScreen = () => {
   const [passwordError, setPasswordError] = useState(false);
 
   const handleLogin = async () => {
-     let valid = true;
+    let valid = true;
     if (!email) {
       setEmailError(true);
       valid = false;
@@ -25,6 +25,11 @@ const LoginScreen = () => {
     } else {
       setPasswordError(false);
     }
+     if (valid) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'WelcomeScreen' }],
+          });}
   };
 
   const handleRegister = () => {
