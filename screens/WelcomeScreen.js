@@ -2,11 +2,13 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Appbar, IconButton, Title } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
-
-  const handleLogout = () => {
+  
+  const handleLogout = async () => {
+    await AsyncStorage.clear();
     navigation.reset({
       index: 0,
       routes: [{ name: 'LoginScreen' }],

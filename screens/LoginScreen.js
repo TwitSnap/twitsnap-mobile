@@ -111,9 +111,11 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     elevation: 4,
+    backgroundColor: '#d4e6f1',
   },
   input: {
     marginBottom: 12,
+    backgroundColor: '#FFFFFF',
   },
   button: {
     marginTop: 16,
