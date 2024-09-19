@@ -4,6 +4,7 @@ import { TextInput, Title, Paragraph, Card, HelperText, Divider } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import CustomButton from '../components/CustomButton';
+import RegisterHandler from '../handlers/RegisterHandler';
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
@@ -16,12 +17,13 @@ const RegisterScreen = () => {
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         setUsernameError(username === "");
         setEmailError(email === "");
         setPasswordError(password === "");
@@ -31,10 +33,24 @@ const RegisterScreen = () => {
             return;
         }
 
-        // TODO: handle API calls, etc.
+        setIsLoading(true);
 
-        Alert.alert('Success', 'Account registered successfully');
-        navigation.navigate('LoginScreen');
+        try {
+            const result = await RegisterHandler(email, password);
+
+            if (result === 0) {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'WelcomeScreen' }],
+                });
+            } else {
+                Alert.alert("Registration failed", "Couldn't register the user.")
+            }
+
+            setIsLoading(false);
+        } catch (error) {
+            console.error(error.message);
+        }
     };
 
     return (
@@ -104,7 +120,7 @@ const RegisterScreen = () => {
                             <Icon name={showPassword ? 'visibility-off' : 'visibility'} size={25} />
                         </TouchableOpacity>
                         <Divider style={styles.divider} />
-                        <CustomButton title="Register" onPress={handleRegister} />
+                        <CustomButton title="Register" onPress={handleRegister} loading={isLoading} />
                     </Card.Content>
                 </Card>
             </View>
