@@ -2,12 +2,13 @@ import React from 'react';
 import { StyleSheet } from 'react-native'; 
 import { Button } from 'react-native-paper';
 
-const CustomButton = ({ title, onPress }) => {
+const CustomButton = ({ title, onPress, loading=false }) => {
   return (
     <Button
       mode="contained"
       onPress={onPress}
       style={styles.button}
+      disabled={loading}
     >
       {title}
     </Button>
