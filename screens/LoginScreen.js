@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Alert } from 'react-native';
 import { TextInput, Button, Title, Paragraph, Card, HelperText, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../components/CustomButton';
+import LoginHandler from '../handlers/LoginHandler';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -10,26 +11,34 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
-    let valid = true;
-    if (!email) {
-      setEmailError(true);
-      valid = false;
-    } else {
-      setEmailError(false);
-    }
-    if (!password) {
-      setPasswordError(true);
-      valid = false;
-    } else {
-      setPasswordError(false);
-    }
-     if (valid) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'WelcomeScreen' }],
-          });}
+     setEmailError(email === "");
+     setPasswordError(password === "");
+
+     if (!email || !password ) {
+            return;
+     }
+
+     setIsLoading(true);
+    
+     try {
+          const result = await LoginHandler(email, password);
+
+          if (result === 0) {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'WelcomeScreen' }],
+                });
+          } else {
+                Alert.alert("Login failed", "Login unsuccessful. Please verify your email and password.")
+          }
+
+          setIsLoading(false);
+     } catch (error) {
+            console.error(error.message);
+     }  
   };
 
   const handleRegister = () => {

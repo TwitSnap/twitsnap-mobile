@@ -39,9 +39,10 @@ const RegisterScreen = () => {
             const result = await RegisterHandler(email, password);
 
             if (result === 0) {
+                Alert.alert('Success', 'Account registered successfully');
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'WelcomeScreen' }],
+                    routes: [{ name: 'LoginScreen' }],
                 });
             } else {
                 Alert.alert("Registration failed", "Couldn't register the user.")
