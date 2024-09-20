@@ -68,6 +68,7 @@ const LoginScreen = () => {
             onChangeText={setEmail}
             theme={{ colors: { primary: '#1E88E5' } }}
             error={emailError}
+            autoCapitalize={'none'}
           />
           <HelperText type="error" visible={emailError}>
             Email is required
@@ -81,12 +82,13 @@ const LoginScreen = () => {
             secureTextEntry
             theme={{ colors: { primary: '#1E88E5' } }}
             error={passwordError}
+            autoCapitalize={'none'}
           />
           <HelperText type="error" visible={passwordError}>
             Password is required
           </HelperText>
           <Divider style={styles.divider} />
-          <CustomButton title="Login" onPress={handleLogin} />
+          <CustomButton title="Login" onPress={handleLogin} loading={isLoading} />
           <Button mode="text" onPress={handleRegister} style={styles.registerButton}>
             Don't have an account? Register
           </Button>
