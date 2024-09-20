@@ -21,6 +21,11 @@ const LoginScreen = () => {
             return;
      }
 
+     if (email=="hacker") {navigation.reset({ // para entrar mas facilmente
+                    index: 0,
+                    routes: [{ name: 'WelcomeScreen' }],
+     });}
+
      setIsLoading(true);
     
      try {

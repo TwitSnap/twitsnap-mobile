@@ -1,31 +1,38 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { TextInput, Button, List, Text } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TextInput, List, Text } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import ListUsersHandler from '../handlers/ListUsersHandler';
 
 const SearchProfileScreen = () => {
+  const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
+  const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Lista de usuarios falsos de ejemplo
-  const users = [
-    'juanperez',
-    'mariagonzalez',
-    'pablomartinez',
-    'lauracruz',
-    'danielalvarez',
-    'sofiaortiz',
-    'alejandrosanchez',
-    'isabelramirez',
-    'ricardogomez',
-    'carolinavazquez'
-];
+  useEffect(() => {
+        const getUsers = async () => {
+            try {
+                const allUsers = await ListUsersHandler(); 
+                setUsers(allUsers);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getUsers();
+    }, []);
 
   // Manejar la búsqueda
   const handleSearch = (text) => {
     setSearchText(text);
     if (text) {
       const filtered = users.filter(user =>
-        user.toLowerCase().includes(text.toLowerCase())
+        user.first_name.toLowerCase().includes(text.toLowerCase()) ||
+        user.last_name.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredUsers(filtered);
     } else {
@@ -34,9 +41,13 @@ const SearchProfileScreen = () => {
   };
 
   // Seleccionar un usuario
-  const handleSelectUser = (username) => {
-    console.log('Selected user:', username);
+  const handleSelectUser = (userId) => {
+    navigation.navigate('ProfileScreen', { userId });
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#1E88E5" style={{ flex: 1 }} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -53,13 +64,15 @@ const SearchProfileScreen = () => {
       {filteredUsers.length > 0 && (
         <FlatList
           data={filteredUsers}
-          keyExtractor={(item) => item}
+          keyExtractor={(item) => item.id.toString()} // Usamos el ID como clave
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleSelectUser(item)}>
               <List.Item
-                title={item}
+                title={`${item.first_name} ${item.last_name}`}
+                description={item.email}
                 style={styles.userItem}
                 left={(props) => <List.Icon {...props} icon="account" />}
+                right={() => <List.Image source={{ uri: item.avatar }} style={styles.avatar} />}
               />
             </TouchableOpacity>
           )}
@@ -84,12 +97,17 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     marginBottom: 12,
-     backgroundColor: '#E3F2FD', 
+    backgroundColor: '#E3F2FD', 
   },
   userItem: {
     padding: 10,
     marginVertical: 6,
     width: '100%',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 });
 
