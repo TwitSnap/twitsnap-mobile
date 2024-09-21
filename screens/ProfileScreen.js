@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { Text, Avatar, Card, Button, HelperText } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useUser} from "../contexts/UserContext";
 
 const ProfileScreen = () => {
-  const [username, setUsername] = useState('yourusername');
-  const [bio, setBio] = useState('Your short bio goes here.');
-  const [avatar, setAvatar] = useState('https://your-avatar-url.com');
+  const { loggedInUser } = useUser();
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatar, setAvatar] = useState('about:blank');
   const [editing, setEditing] = useState(false);
   const [newUsername, setNewUsername] = useState(username);
   const [newAvatar, setNewAvatar] = useState(avatar);
@@ -14,21 +16,13 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
-      try {
-        const savedUsername = await AsyncStorage.getItem('username');
-        const savedBio = await AsyncStorage.getItem('bio');
-        const savedAvatar = await AsyncStorage.getItem('avatar');
-
-        if (savedUsername) setUsername(savedUsername);
-        if (savedBio) setBio(savedBio);
-        if (savedAvatar) setAvatar(savedAvatar);
-      } catch (error) {
-        console.error('Failed to load profile data', error);
-      }
+      setUsername(loggedInUser.username);
+      setBio(loggedInUser.bio);
+      setAvatar(loggedInUser.avatar);
     };
 
     loadProfile();
-  }, []);
+  }, [loggedInUser]);
 
   const handleSave = async () => {
     if (newUsername.trim() === '') {
