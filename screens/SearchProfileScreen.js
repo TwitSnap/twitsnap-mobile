@@ -66,7 +66,7 @@ const SearchProfileScreen = () => {
           data={filteredUsers}
           keyExtractor={(item) => item.id.toString()} // Usamos el ID como clave
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleSelectUser(item)}>
+            <TouchableOpacity onPress={() => handleSelectUser(item.id)}>
               <List.Item
                 title={`${item.first_name} ${item.last_name}`}
                 description={item.email}
