@@ -7,6 +7,7 @@ export const UserProvider = ({ children }) => {
     useEffect(() => {
         const fetchLoggedInUser = async () => {
             const fetchedUser = {
+                'id': '1234abc',
                 'username': 'foobar2',
                 'bio': 'Your short bio goes here.',
                 'avatar': 'https://images.pexels.com/photos/1759530/pexels-photo-1759530.jpeg',
