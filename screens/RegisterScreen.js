@@ -10,6 +10,8 @@ const RegisterScreen = () => {
     const navigation = useNavigation();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
+    const [country, setCountry] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +38,9 @@ const RegisterScreen = () => {
         setIsLoading(true);
 
         try {
-            const result = await RegisterHandler(email, password);
+            const result = await RegisterHandler(
+                username, email, password, phone, country
+            );
 
             if (result === 0) {
                 Alert.alert('Success', 'Account registered successfully');
@@ -45,7 +49,7 @@ const RegisterScreen = () => {
                     routes: [{ name: 'LoginScreen' }],
                 });
             } else {
-                Alert.alert("Registration failed", "Couldn't register the user.")
+                Alert.alert("Registration failed", result.message);
             }
 
             setIsLoading(false);
@@ -88,6 +92,31 @@ const RegisterScreen = () => {
                         />
                         <HelperText type="error" visible={emailError}>
                             Email is required
+                        </HelperText>
+                        <Divider style={styles.divider} />
+                        <TextInput
+                            style={styles.input}
+                            theme={{ colors: { primary: '#1E88E5' } }}
+                            keyboardType="number-pad"
+                            autoCapitalize={'none'}
+                            label="Phone number"
+                            value={phone}
+                            onChangeText={setPhone}
+                        />
+                        <HelperText type="error" visible={false}>
+                            Just here for adding space between the 2 inputs.
+                        </HelperText>
+                        <Divider style={styles.divider} />
+                        <TextInput
+                            style={styles.input}
+                            theme={{ colors: { primary: '#1E88E5' } }}
+                            autoCapitalize={'none'}
+                            label="Country"
+                            value={country}
+                            onChangeText={setCountry}
+                        />
+                        <HelperText type="error" visible={false}>
+                            Just here for adding space between the 2 inputs.
                         </HelperText>
                         <Divider style={styles.divider} />
                         <TextInput

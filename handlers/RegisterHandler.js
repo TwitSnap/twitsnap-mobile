@@ -5,7 +5,9 @@ const headers = {
     'Access-Control-Allow-Origin': '*',
 };
 
-const RegisterHandler = async (email, password) => {
+const RegisterHandler = async (
+    username, email, password, phone, country
+) => {
     try {
         const requestBody = {
             email: email,
@@ -27,7 +29,7 @@ const RegisterHandler = async (email, password) => {
                 await AsyncStorage.setItem('token', token);
                 return 0;
             default:
-                return 1;
+                return Error(responseJson.error || "Couldn't register the user.");
         }
     } catch (error) {
         console.error("error: ", error);
