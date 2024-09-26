@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Image, Alert } from 'react-native';
 import { TextInput, Button, Title, Paragraph, Card, HelperText, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import CustomButton from '../components/CustomButton';
 import LoginHandler from '../handlers/LoginHandler';
+import { auth } from '../firebaseConfig';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -13,37 +18,97 @@ const LoginScreen = () => {
   const [passwordError, setPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: '450665613455-ui2sreo4d8uf4m4jjqqqskbqpb6q3sr3.apps.googleusercontent.com',
+    redirectUri: 'https://twitsnap-57128.firebaseapp.com/__/auth/handler',
+    scopes: ['profile', 'email'],
+  });
+
+   
+useEffect(() => {
+  console.log("Auth response received:", response);
+  if (response && response.type === 'success') {
+    const { authentication } = response;
+
+    if (authentication && authentication.idToken) {
+      handleGoogleLogin(authentication.idToken);
+    } else {
+      console.error("Authentication object is missing idToken");
+      Alert.alert("Authentication Error", "Unable to retrieve authentication token.");
+    }
+  } else if (response && response.type === 'error') {
+    console.error("Google Auth Error:", response.error);
+    Alert.alert("Authentication Error", "An error occurred during authentication.");
+  }
+}, [response]);
+
+ const handleGoogleLogin = async (idToken) => {
+    try {
+      const credential = GoogleAuthProvider.credential(idToken);
+
+      const firebaseUser = await signInWithCredential(auth, credential);
+      
+
+      const token = await firebaseUser.user.getIdToken(); 
+      const res = await fetch('https://twitsnap-user-api.onrender.com/api/v1/register/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }), 
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'WelcomeScreen' }],
+        });
+      } else {
+        Alert.alert("Google Login failed", "Please try again.");
+      }
+    } catch (error) {
+       console.error("Error during Google login:", error);
+      Alert.alert("Error", error.message);
+    }
+  };
+
   const handleLogin = async () => {
-     setEmailError(email === "");
-     setPasswordError(password === "");
+    setEmailError(email === "");
+    setPasswordError(password === "");
 
-     if (!email || !password ) {
-            return;
-     }
+    if (!email || !password) {
+      return;
+    }
 
-     if (email=="hacker") {navigation.reset({ // para entrar mas facilmente
-                    index: 0,
-                    routes: [{ name: 'WelcomeScreen' }],
-     });}
+    if (email === "hacker") {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'WelcomeScreen' }],
+      });
+      return;
+    }
 
-     setIsLoading(true);
-    
-     try {
-          const result = await LoginHandler(email, password);
+    setIsLoading(true);
 
-          if (result === 0) {
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'WelcomeScreen' }],
-                });
-          } else {
-                Alert.alert("Login failed", "Login unsuccessful. Please verify your email and password.")
-          }
+    try {
+      const result = await LoginHandler(email, password);
 
-          setIsLoading(false);
-     } catch (error) {
-            console.error(error.message);
-     }  
+      if (result === 0) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'WelcomeScreen' }],
+        });
+      } else {
+        Alert.alert("Login failed", "Login unsuccessful. Please verify your email and password.");
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error(error.message);
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = () => {
@@ -89,6 +154,16 @@ const LoginScreen = () => {
           </HelperText>
           <Divider style={styles.divider} />
           <CustomButton title="Login" onPress={handleLogin} loading={isLoading} />
+          <Button
+            mode="contained"
+            onPress={() => {
+             promptAsync();
+            }}          
+            disabled={!request}
+            style={styles.googleButton}
+          >
+            Login with Google
+          </Button>
           <Button mode="text" onPress={handleRegister} style={styles.registerButton}>
             Don't have an account? Register
           </Button>
@@ -133,9 +208,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: '#FFFFFF',
   },
-  button: {
+  googleButton: {
     marginTop: 16,
-    backgroundColor: '#1E88E5',
+    backgroundColor: '#db4a39',
   },
   registerButton: {
     marginTop: 12,
