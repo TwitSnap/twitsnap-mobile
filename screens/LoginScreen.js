@@ -26,7 +26,6 @@ const LoginScreen = () => {
 
    
 useEffect(() => {
-  console.log("Auth response received:", response);
   if (response && response.type === 'success') {
     const { authentication } = response;
 

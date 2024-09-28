@@ -11,20 +11,22 @@ const LoginHandler = async (email, password) => {
             password: password,
         };
 
-        // TODO: usar la API real
-        const response = await fetch('https://reqres.in/api/login', {
+        const response = await fetch('https://twitsnap-gateway.onrender.com/v1/auth/login', {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify(requestBody),
         });
         const responseJson = await response.json();
         console.log(responseJson);
 
         switch (response.status) {
-            case 200:
+            case 200: 
                 const token = responseJson.token;
                 await AsyncStorage.setItem('token', token);
                 return 0;
+            case 400: 
+                console.warn("Invalid credentials");
+                return 1;
             default:
                 return 1;
         }

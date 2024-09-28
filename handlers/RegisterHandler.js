@@ -10,12 +10,14 @@ const RegisterHandler = async (
 ) => {
     try {
         const requestBody = {
+            username: username,
             email: email,
             password: password,
+            phone: phone,
+            country: country
         };
 
-        // TODO: usar la API real
-        const response = await fetch('https://reqres.in/api/register', {
+        const response = await fetch('https://twitsnap-gateway.onrender.com/api/v1/register/', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(requestBody),
@@ -24,12 +26,13 @@ const RegisterHandler = async (
         console.log(responseJson);
 
         switch (response.status) {
-            case 200:
-                const token = responseJson.token;
-                await AsyncStorage.setItem('token', token);
+            case 201: 
                 return 0;
+            case 422: 
+                console.warn("Validation error: ", responseJson.detail);
+                return new Error("Validation error: " + responseJson.detail.map(err => err.msg).join(', '));
             default:
-                return Error(responseJson.error || "Couldn't register the user.");
+                return new Error(responseJson.error || "Couldn't register the user.");
         }
     } catch (error) {
         console.error("error: ", error);
