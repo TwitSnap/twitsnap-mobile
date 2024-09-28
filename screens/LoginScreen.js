@@ -100,7 +100,7 @@ const LoginScreen = () => {
                     routes: [{ name: 'WelcomeScreen' }],
                 });
             } else {
-                Alert.alert("Login failed", "Login unsuccessful. Please verify your email and password.");
+                Alert.alert("Login failed", result.message);
             }
 
             setIsLoading(false);

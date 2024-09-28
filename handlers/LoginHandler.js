@@ -24,11 +24,9 @@ const LoginHandler = async (email, password) => {
                 const token = responseJson.token;
                 await AsyncStorage.setItem('token', token);
                 return 0;
-            case 400: 
-                console.warn("Invalid credentials");
-                return 1;
             default:
-                return 1;
+                const msg = `${responseJson.title || "Unknown Error"}\nStatus code: ${response.status}`;
+                return new Error(msg);
         }
     } catch (error) {
         console.error("error: ", error);
