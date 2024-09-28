@@ -128,6 +128,7 @@ const LoginScreen = () => {
                     <TextInput
                         style={styles.input}
                         label="Email"
+                        keyboardType="email-address"
                         value={email}
                         onChangeText={setEmail}
                         theme={{ colors: { primary: '#1E88E5' } }}
