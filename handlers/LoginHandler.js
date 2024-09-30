@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GATEWAY_URL } from '../constants';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -11,7 +12,7 @@ const LoginHandler = async (email, password) => {
             password: password,
         };
 
-        const response = await fetch('https://twitsnap-gateway.onrender.com/v1/auth/login', {
+        const response = await fetch(`${GATEWAY_URL}/v1/auth/login`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(requestBody),

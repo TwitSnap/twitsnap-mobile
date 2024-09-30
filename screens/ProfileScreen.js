@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from "@react-navigation/native";
 import {useUser} from "../contexts/UserContext";
 import fetchUser from "../functions/fetchUser";
+import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
+import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
+import GetProfileHandler from "../handlers/GetProfileHandler";
 
 const ProfileScreen = () => {
     const { userId } = useRoute().params || {};
@@ -16,26 +19,42 @@ const ProfileScreen = () => {
     const [newUsername, setNewUsername] = useState(username);
     const [newAvatar, setNewAvatar] = useState(avatar);
     const [usernameError, setUsernameError] = useState(false);
+    const [country, setCountry] = useState(''); 
+    const [newCountry, setNewCountry] = useState(country);
 
     useEffect(() => {
         const loadProfile = async () => {
             if (userId && userId !== loggedInUser.id) {
-                const data = await fetchUser(userId);
-                if (data) {
-                    setUsername(`${data.first_name} ${data.last_name}`);
-                    setBio('I\'m from ReqRes :D');
-                    setAvatar(data.avatar);
-                } else {
-                    return (
+                 try {
+                    const data = await GetProfileHandler(userId); // Usa GetProfileHandler aquí
+                    if (data) {
+                        setUsername(data.username);
+                        setBio(data.description || 'No bio available');
+                        setAvatar(data.avatar || 'about:blank');
+                        setCountry(data.country || 'Country not specified');
+                    } else {
+                        return (
                         <View style={styles.container}>
                             <Text>Failed to load user.</Text>
                         </View>
                     );
+                    }
+                } catch (error) {
+                    console.error('Failed to load user profile:', error);
+                    setBio('Failed to load user.');
                 }
             } else {
-                setUsername(loggedInUser.username);
-                setBio(loggedInUser.bio);
-                setAvatar(loggedInUser.avatar);
+                try {
+                    const profileData = await GetMyProfileHandler();
+                    setUsername(profileData.username);
+                    setNewUsername(profileData.username);
+                    setBio(profileData.description || 'No bio available');
+                    setAvatar(profileData.avatar || 'about:blank');
+                    setCountry(profileData.country || 'Country not specified');
+                    setNewCountry(profileData.country || '');
+                } catch (error) {
+                    console.error('Failed to load authenticated user profile', error);
+                }
             }
         };
 
@@ -50,14 +69,21 @@ const ProfileScreen = () => {
         setUsernameError(false);
 
         try {
+            await EditMyProfileHandler(newUsername, loggedInUser.phone, newCountry, bio);
             setUsername(newUsername);
             setAvatar(newAvatar);
+            setCountry(newCountry); 
+
             await AsyncStorage.setItem('username', newUsername);
             await AsyncStorage.setItem('bio', bio);
             await AsyncStorage.setItem('avatar', newAvatar);
+            await AsyncStorage.setItem('country', newCountry);
+
             setEditing(false);
+            Alert.alert('Success', 'Profile updated successfully!');
         } catch (error) {
             console.error('Failed to save profile data', error);
+            Alert.alert('Error', error.message);
         }
     };
 
@@ -67,7 +93,7 @@ const ProfileScreen = () => {
         }
     };
 
-    if (!userId || userId === loggedInUser.id) {
+   if (!userId || userId === loggedInUser.id) {
         return (
             <View style={styles.container}>
                 <TouchableOpacity onPress={handleImagePick} style={styles.profileHeader}>
@@ -106,6 +132,22 @@ const ProfileScreen = () => {
                     </Card.Content>
                 </Card>
 
+                <Card style={styles.card}>
+                    <Card.Title title="Country"/>
+                    <Card.Content>
+                        {editing ? (
+                            <TextInput
+                                style={styles.input}
+                                value={newCountry}
+                                onChangeText={setNewCountry}
+                                placeholder="Edit Country"
+                            />
+                        ) : (
+                            <Text>{country}</Text> 
+                        )}
+                    </Card.Content>
+                </Card>
+
                 {editing ? (
                     <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
                         Save
@@ -129,6 +171,13 @@ const ProfileScreen = () => {
                     <Card.Title title="Bio"/>
                     <Card.Content>
                         <Text>{bio}</Text>
+                    </Card.Content>
+                </Card>
+
+                <Card style={styles.card}>
+                    <Card.Title title="Country"/>
+                    <Card.Content>
+                        <Text>{country}</Text> 
                     </Card.Content>
                 </Card>
             </View>

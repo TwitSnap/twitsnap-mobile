@@ -1,25 +1,21 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GATEWAY_URL } from '../constants';
 
 const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Accept': 'application/json', // Asegúrate de incluir el encabezado 'Accept'
 };
 
-const GetMyProfileHandler = async () => {
+const GetProfileHandler = async (userId) => {
     try {
         const token = await AsyncStorage.getItem('token');
-
-        if (!token) {
-            throw new Error("User is not authenticated. No token found.");
-        }
 
         const authHeaders = {
             ...headers,
             'Authorization': `Bearer ${token}`, 
         };
 
-        const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
+        const response = await fetch(`${GATEWAY_URL}/api/v1/users/${userId}`, {
             method: 'GET',
             headers: authHeaders,
         });
@@ -34,13 +30,9 @@ const GetMyProfileHandler = async () => {
                 throw new Error(responseJson.error || "Failed to fetch user profile.");
         }
     } catch (error) {
-        console.error("Error fetching user profile: ", error);
-        const message =
-            error.response?.data?.error ||
-            error.message ||
-            'Service is not available at the moment';
-        throw new Error(message);
+        console.error('Error fetching user profile:', error.message);
+        throw error; 
     }
 };
 
-export default GetMyProfileHandler;
+export default GetProfileHandler;

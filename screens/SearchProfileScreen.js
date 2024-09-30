@@ -12,27 +12,26 @@ const SearchProfileScreen = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-        const getUsers = async () => {
-            try {
-                const allUsers = await ListUsersHandler(); 
-                setUsers(allUsers);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const getUsers = async () => {
+      try {
+        const allUsers = await ListUsersHandler(); 
+        setUsers(allUsers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        getUsers();
-    }, []);
+    getUsers();
+  }, []);
 
   // Manejar la búsqueda
   const handleSearch = (text) => {
     setSearchText(text);
     if (text) {
       const filtered = users.filter(user =>
-        user.first_name.toLowerCase().includes(text.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(text.toLowerCase())
+        user.username.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredUsers(filtered);
     } else {
@@ -41,8 +40,8 @@ const SearchProfileScreen = () => {
   };
 
   // Seleccionar un usuario
-  const handleSelectUser = (userId) => {
-    navigation.navigate('ProfileScreen', { userId });
+  const handleSelectUser = (uid) => {
+    navigation.navigate('ProfileScreen', { userId: uid });
   };
 
   if (loading) {
@@ -64,15 +63,13 @@ const SearchProfileScreen = () => {
       {filteredUsers.length > 0 && (
         <FlatList
           data={filteredUsers}
-          keyExtractor={(item) => item.id.toString()} // Usamos el ID como clave
+          keyExtractor={(item) => item.uid.toString()} 
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleSelectUser(item.id)}>
+            <TouchableOpacity onPress={() => handleSelectUser(item.uid)}>
               <List.Item
-                title={`${item.first_name} ${item.last_name}`}
-                description={item.email}
+                title={`${item.username}`}
                 style={styles.userItem}
                 left={(props) => <List.Icon {...props} icon="account" />}
-                right={() => <List.Image source={{ uri: item.avatar }} style={styles.avatar} />}
               />
             </TouchableOpacity>
           )}
@@ -103,11 +100,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 6,
     width: '100%',
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
   },
 });
 
