@@ -34,6 +34,8 @@ const RegisterHandler = async (
             switch (response.status) {
                 case 201: 
                     return 0; 
+                case 409: 
+                    return new Error(responseJson.message);
                 case 422: 
                     return new Error("Validation error: " + responseJson.detail.map(err => err.msg).join(', '));
                 default:
@@ -42,11 +44,11 @@ const RegisterHandler = async (
             }
 
         } catch (error) {
-            console.error("Error encountered: ", error);
+            console.log("Error encountered: ", error);
             console.log(`Retrying... attempt ${retries + 1}`);
 
             retries++;
-r
+
             if (retries >= maxRetries) {
                 throw new Error("Maximum retry attempts reached. ");
             }

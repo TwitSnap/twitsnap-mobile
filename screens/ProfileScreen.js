@@ -40,9 +40,9 @@ const ProfileScreen = () => {
                     const data = await GetProfileHandler(userId);
                     if (data) {
                         setUsername(data.username);
-                        setBio(data.description || 'No bio available');
+                        setBio(data.description);
                         setAvatar(data.avatar || 'about:blank');
-                        setCountry(data.country || 'Country not specified');
+                        setCountry(data.country);
                     } else {
                         return (
                             <View style={styles.container}>
@@ -94,6 +94,13 @@ const ProfileScreen = () => {
         }
     };
 
+     const handleCancel = () => {
+        setEditing(false);
+        setNewUsername(username); 
+        setBio(loggedInUser.description); 
+        setNewCountry(country); 
+    };
+
    if (allowEdit) {
         return (
             <View style={styles.container}>
@@ -128,7 +135,7 @@ const ProfileScreen = () => {
                                 numberOfLines={4}
                             />
                         ) : (
-                            <Text>{bio}</Text>
+                            <Text>{bio || 'No bio specified'}</Text>
                         )}
                     </Card.Content>
                 </Card>
@@ -144,15 +151,20 @@ const ProfileScreen = () => {
                                 placeholder="Edit Country"
                             />
                         ) : (
-                            <Text>{country}</Text> 
+                            <Text>{country || 'Country not specified'}</Text> 
                         )}
                     </Card.Content>
                 </Card>
 
                 {editing ? (
-                    <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
-                        Save
-                    </Button>
+                      <>
+                        <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
+                            Save
+                        </Button>
+                        <Button mode="outlined" onPress={handleCancel} style={styles.cancelButton}>
+                            Cancel
+                        </Button>
+                    </>
                 ) : (
                     <Button mode="outlined" onPress={() => setEditing(true)} style={styles.editButton}>
                         Edit
@@ -171,14 +183,14 @@ const ProfileScreen = () => {
                 <Card style={styles.card}>
                     <Card.Title title="Bio"/>
                     <Card.Content>
-                        <Text>{bio}</Text>
+                        <Text>{bio || 'No bio specified'}</Text>
                     </Card.Content>
                 </Card>
 
                 <Card style={styles.card}>
                     <Card.Title title="Country"/>
                     <Card.Content>
-                        <Text>{country}</Text> 
+                        <Text>{country || 'Country not specified'}</Text> 
                     </Card.Content>
                 </Card>
             </View>

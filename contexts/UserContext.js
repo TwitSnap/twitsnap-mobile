@@ -9,9 +9,9 @@ export const UserProvider = ({ children }) => {
             const noUser = {
                 'id': '',
                 'username': 'unknown',
-                'description': 'No bio available',
+                'description': '',
                 'avatar': 'about:blank',
-                'county': 'Country not specified',
+                'county': '',
             };
 
             setLoggedInUser(noUser);

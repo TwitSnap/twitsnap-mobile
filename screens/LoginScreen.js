@@ -52,7 +52,7 @@ const LoginScreen = () => {
 
 
             const token = await firebaseUser.user.getIdToken();
-            const res = await fetch('https://twitsnap-user-api.onrender.com/api/v1/register/google', {
+            const res = await fetch(`${GATEWAY_URL}/api/v1/register/google`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -90,12 +90,12 @@ const LoginScreen = () => {
             const result = await LoginHandler(email, password);
 
             if (result === 0) {
-                const profileData = await GetMyProfileHandler();
-                setLoggedInUser(profileData);
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'WelcomeScreen' }],
                 });
+                const profileData = await GetMyProfileHandler();
+                setLoggedInUser(profileData);
             } else {
                 Alert.alert("Login failed", result.message);
             }

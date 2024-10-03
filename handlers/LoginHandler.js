@@ -37,7 +37,7 @@ const LoginHandler = async (email, password) => {
             }
 
         } catch (error) {
-            console.error("Error encountered: ", error);
+            console.log("Error encountered: ", error);
             console.log(`Retrying... attempt ${retries + 1}`);
 
             retries++;
