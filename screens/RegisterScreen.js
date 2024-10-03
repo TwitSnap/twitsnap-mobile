@@ -18,6 +18,7 @@ const RegisterScreen = () => {
     const [usernameError, setUsernameError] = useState(false);
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
+    const [passwordLengthError, setPasswordLengthError] = useState(false);
     const [confirmPasswordError, setConfirmPasswordError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -29,9 +30,10 @@ const RegisterScreen = () => {
         setUsernameError(username === "");
         setEmailError(email === "");
         setPasswordError(password === "");
+        setPasswordLengthError(password.length < 8);
         setConfirmPasswordError(password !== confirmPassword);
 
-        if (!username || !email || !password || password !== confirmPassword) {
+        if (!username || !email || !password || password !== confirmPassword || password.length < 8) {
             return;
         }
 
@@ -131,6 +133,9 @@ const RegisterScreen = () => {
                         />
                         <HelperText type="error" visible={passwordError}>
                             Password is required
+                        </HelperText>
+                        <HelperText type="error" visible={passwordLengthError}>
+                            Password must be at least 8 characters
                         </HelperText>
                         <Divider style={styles.divider} />
                         <TextInput

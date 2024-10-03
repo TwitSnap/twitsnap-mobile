@@ -15,8 +15,12 @@ const WelcomeScreen = () => {
     });
   };
 
-  const handleViewProfile = () => {
-    navigation.navigate('ProfileScreen');
+  const handleViewProfile = async () => {
+    try {
+      navigation.navigate('ProfileScreen', { allowEdit: true });
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+    }
   };
 
   const handleSearchProfile = () => {

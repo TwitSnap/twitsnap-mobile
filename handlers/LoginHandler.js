@@ -6,36 +6,46 @@ const headers = {
 };
 
 const LoginHandler = async (email, password) => {
-    try {
-        const requestBody = {
-            email: email,
-            password: password,
-        };
+    const requestBody = {
+        email: email,
+        password: password,
+    };
 
-        const response = await fetch(`${GATEWAY_URL}/v1/auth/login`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(requestBody),
-        });
-        const responseJson = await response.json();
-        console.log(responseJson);
+    let retries = 0;
+    const maxRetries = 5; 
 
-        switch (response.status) {
-            case 200: 
-                const token = responseJson.token;
-                await AsyncStorage.setItem('token', token);
-                return 0;
-            default:
-                const msg = `${responseJson.title || "Unknown Error"}\nStatus code: ${response.status}`;
-                return new Error(msg);
+    while (retries < maxRetries) {
+        try {
+            const response = await fetch(`${GATEWAY_URL}/v1/auth/login`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestBody),
+            });
+            const responseJson = await response.json();
+            console.log(responseJson);
+
+            switch (response.status) {
+                case 200:
+                    const token = responseJson.token;
+                    await AsyncStorage.setItem('token', token);
+                    return 0;  
+                case 401:
+                    return new Error("Incorrect email or password. Please check your credentials and try again.");
+                default:
+                    console.log(`Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`);
+                    retries++;
+            }
+
+        } catch (error) {
+            console.error("Error encountered: ", error);
+            console.log(`Retrying... attempt ${retries + 1}`);
+
+            retries++;
+
+            if (retries >= maxRetries) {
+                throw new Error("Maximum retry attempts reached. ");
+            }
         }
-    } catch (error) {
-        console.error("error: ", error);
-        const message =
-            error.response?.data?.error ||
-            error.message ||
-            'Service is not available at the moment';
-        throw new Error(message);
     }
 };
 

@@ -5,45 +5,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from "@react-navigation/native";
 import {useUser} from "../contexts/UserContext";
 import fetchUser from "../functions/fetchUser";
-import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
 import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 
+
 const ProfileScreen = () => {
-    const { userId } = useRoute().params || {};
+    const { userId, allowEdit } = useRoute().params || {};
     const { loggedInUser, setLoggedInUser } = useUser();
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
     const [avatar, setAvatar] = useState('about:blank');
+    const [country, setCountry] = useState('')
     const [editing, setEditing] = useState(false);
     const [newUsername, setNewUsername] = useState(username);
     const [newAvatar, setNewAvatar] = useState(avatar);
     const [usernameError, setUsernameError] = useState(false);
-    const [country, setCountry] = useState(''); 
     const [newCountry, setNewCountry] = useState(country);
 
     useEffect(() => {
         const loadProfile = async () => {
-            if (userId && userId !== loggedInUser.id) {
-                 try {
-                    const data = await GetProfileHandler(userId); // Usa GetProfileHandler aquí
-                    if (data) {
-                        setUsername(data.username);
-                        setBio(data.description || 'No bio available');
-                        setAvatar(data.avatar || 'about:blank');
-                        setCountry(data.country || 'Country not specified');
-                    } else {
-                        return (
-                        <View style={styles.container}>
-                            <Text>Failed to load user.</Text>
-                        </View>
-                    );
-                    }
-                } catch (error) {
-                    console.error('Failed to load user profile:', error);
-                    setBio('Failed to load user.');
-                }
-            } else {
+            if (allowEdit) {
                 try {
                     setUsername(loggedInUser.username);
                     setNewUsername(loggedInUser.username);
@@ -54,11 +35,30 @@ const ProfileScreen = () => {
                 } catch (error) {
                     console.error('Failed to load authenticated user profile', error);
                 }
+            } else {
+                try {
+                    const data = await GetProfileHandler(userId);
+                    if (data) {
+                        setUsername(data.username);
+                        setBio(data.description || 'No bio available');
+                        setAvatar(data.avatar || 'about:blank');
+                        setCountry(data.country || 'Country not specified');
+                    } else {
+                        return (
+                            <View style={styles.container}>
+                                <Text>Failed to load user.</Text>
+                            </View>
+                        );
+                    }
+                } catch (error) {
+                    console.error('Failed to load user profile:', error);
+                    setBio('Failed to load user.');
+                }
             }
         };
 
         loadProfile();
-    }, [loggedInUser]);
+    }, []);
 
     const handleSave = async () => {
         if (newUsername.trim() === '') {
@@ -94,7 +94,7 @@ const ProfileScreen = () => {
         }
     };
 
-   if (!userId || userId === loggedInUser.id) {
+   if (allowEdit) {
         return (
             <View style={styles.container}>
                 <TouchableOpacity onPress={handleImagePick} style={styles.profileHeader}>
