@@ -17,6 +17,7 @@ const ProfileScreen = () => {
     const [avatar, setAvatar] = useState('about:blank');
     const [country, setCountry] = useState('')
     const [editing, setEditing] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [newUsername, setNewUsername] = useState(username);
     const [newAvatar, setNewAvatar] = useState(avatar);
     const [usernameError, setUsernameError] = useState(false);
@@ -55,10 +56,19 @@ const ProfileScreen = () => {
                     setBio('Failed to load user.');
                 }
             }
+            setLoading(false);
         };
 
         loadProfile();
     }, []);
+
+    if (loading) {
+        return (
+            <View style={styles.messageScreen}>
+                <Text style={{fontSize: 20}}>Loading...</Text>
+            </View>
+        );
+    };
 
     const handleSave = async () => {
         if (newUsername.trim() === '') {
@@ -237,6 +247,13 @@ const styles = StyleSheet.create({
     saveButton: {
         marginTop: 16,
         backgroundColor: '#1E88E5',
+    },
+    messageScreen: {
+        flex: 1,
+        backgroundColor: '#E3F2FD',
+        padding: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 
