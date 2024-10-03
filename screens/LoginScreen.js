@@ -4,14 +4,17 @@ import { TextInput, Button, Title, Paragraph, Card, HelperText, Divider } from '
 import { useNavigation } from '@react-navigation/native';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import {useUser} from "../contexts/UserContext";
 import CustomButton from '../components/CustomButton';
 import LoginHandler from '../handlers/LoginHandler';
+import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
 import { auth } from '../firebaseConfig';
 
 WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
     const navigation = useNavigation();
+    const { setLoggedInUser } = useUser();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState(false);
@@ -81,20 +84,14 @@ const LoginScreen = () => {
             return;
         }
 
-        if (email === "hacker") {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'WelcomeScreen' }],
-            });
-            return;
-        }
-
         setIsLoading(true);
 
         try {
             const result = await LoginHandler(email, password);
 
             if (result === 0) {
+                const profileData = await GetMyProfileHandler();
+                setLoggedInUser(profileData);
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'WelcomeScreen' }],

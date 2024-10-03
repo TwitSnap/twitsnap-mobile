@@ -11,7 +11,7 @@ import GetProfileHandler from "../handlers/GetProfileHandler";
 
 const ProfileScreen = () => {
     const { userId } = useRoute().params || {};
-    const { loggedInUser } = useUser();
+    const { loggedInUser, setLoggedInUser } = useUser();
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
     const [avatar, setAvatar] = useState('about:blank');
@@ -45,13 +45,12 @@ const ProfileScreen = () => {
                 }
             } else {
                 try {
-                    const profileData = await GetMyProfileHandler();
-                    setUsername(profileData.username);
-                    setNewUsername(profileData.username);
-                    setBio(profileData.description || 'No bio available');
-                    setAvatar(profileData.avatar || 'about:blank');
-                    setCountry(profileData.country || 'Country not specified');
-                    setNewCountry(profileData.country || '');
+                    setUsername(loggedInUser.username);
+                    setNewUsername(loggedInUser.username);
+                    setBio(loggedInUser.description);
+                    setAvatar(loggedInUser.avatar);
+                    setCountry(loggedInUser.country);
+                    setNewCountry(loggedInUser.country);
                 } catch (error) {
                     console.error('Failed to load authenticated user profile', error);
                 }
@@ -69,15 +68,17 @@ const ProfileScreen = () => {
         setUsernameError(false);
 
         try {
-            await EditMyProfileHandler(newUsername, loggedInUser.phone, newCountry, bio);
-            setUsername(newUsername);
-            setAvatar(newAvatar);
-            setCountry(newCountry); 
+            const profileData = await EditMyProfileHandler(newUsername, loggedInUser.phone, newCountry, bio);
+            setLoggedInUser(profileData);
 
-            await AsyncStorage.setItem('username', newUsername);
-            await AsyncStorage.setItem('bio', bio);
-            await AsyncStorage.setItem('avatar', newAvatar);
-            await AsyncStorage.setItem('country', newCountry);
+            // Have to update it like this instead of using loggedInUser
+            // cause value doesn't update until next call.
+            setUsername(profileData.username);
+            setNewUsername(profileData.username);
+            setBio(profileData.description);
+            setAvatar(profileData.avatar);
+            setCountry(profileData.country);
+            setNewCountry(profileData.country);
 
             setEditing(false);
             Alert.alert('Success', 'Profile updated successfully!');
