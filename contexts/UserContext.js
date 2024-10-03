@@ -11,7 +11,7 @@ export const UserProvider = ({ children }) => {
                 'username': 'unknown',
                 'description': '',
                 'avatar': 'about:blank',
-                'county': '',
+                'country': '',
             };
 
             setLoggedInUser(noUser);
