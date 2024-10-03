@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Appbar, IconButton, Title } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
@@ -15,8 +16,13 @@ const WelcomeScreen = () => {
     });
   };
 
-  const handleViewProfile = () => {
-    navigation.navigate('ProfileScreen');
+  const handleViewProfile = async () => {
+    try {
+      const profileData = await GetMyProfileHandler();
+      navigation.navigate('ProfileScreen', { profileData, edit: true });
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+    }
   };
 
   const handleSearchProfile = () => {

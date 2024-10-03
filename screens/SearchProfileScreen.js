@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 
 import { TextInput, List, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import ListUsersHandler from '../handlers/ListUsersHandler';
+import GetProfileHandler from "../handlers/GetProfileHandler";
 
 const SearchProfileScreen = () => {
   const navigation = useNavigation();
@@ -26,7 +27,6 @@ const SearchProfileScreen = () => {
     getUsers();
   }, []);
 
-  // Manejar la búsqueda
   const handleSearch = (text) => {
     setSearchText(text);
     if (text) {
@@ -39,9 +39,9 @@ const SearchProfileScreen = () => {
     }
   };
 
-  // Seleccionar un usuario
-  const handleSelectUser = (uid) => {
-    navigation.navigate('ProfileScreen', { userId: uid });
+  const handleSelectUser = async (userId) => {
+    const profileData = await GetProfileHandler(userId); 
+    navigation.navigate('ProfileScreen', { profileData, edit: false });
   };
 
   if (loading) {
