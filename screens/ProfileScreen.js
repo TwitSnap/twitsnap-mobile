@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { Text, Avatar, Card, Button, HelperText } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from "@react-navigation/native";
@@ -63,12 +63,8 @@ const ProfileScreen = () => {
     }, []);
 
     if (loading) {
-        return (
-            <View style={styles.messageScreen}>
-                <Text style={{fontSize: 20}}>Loading...</Text>
-            </View>
-        );
-    };
+    return <ActivityIndicator size="large" color="#1E88E5" style={{ flex: 1 }} />;
+  }
 
     const handleSave = async () => {
         if (newUsername.trim() === '') {

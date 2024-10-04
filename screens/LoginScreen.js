@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Image, Alert } from 'react-native';
-import { TextInput, Button, Title, Paragraph, Card, HelperText, Divider } from 'react-native-paper';
+import { TextInput, Button, Title, Paragraph, Card, HelperText, Divider, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
@@ -20,6 +20,7 @@ const LoginScreen = () => {
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const [request, response, promptAsync] = Google.useAuthRequest({
         clientId: '450665613455-ui2sreo4d8uf4m4jjqqqskbqpb6q3sr3.apps.googleusercontent.com',
@@ -141,10 +142,16 @@ const LoginScreen = () => {
                         label="Password"
                         value={password}
                         onChangeText={setPassword}
-                        secureTextEntry
+                        secureTextEntry={!showPassword}
                         theme={{ colors: { primary: '#1E88E5' } }}
                         error={passwordError}
                         autoCapitalize={'none'}
+                        right={
+                            <TextInput.Icon
+                                icon={showPassword ? 'eye-off' : 'eye'}
+                                onPress={() => setShowPassword(!showPassword)}
+                            />
+                        } 
                     />
                     <HelperText type="error" visible={passwordError}>
                         Password is required

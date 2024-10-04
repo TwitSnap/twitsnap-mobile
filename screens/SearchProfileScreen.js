@@ -50,7 +50,7 @@ const SearchProfileScreen = () => {
   return (
     <View style={styles.container}>
       <Text variant="headlineLarge" style={styles.title}>
-        Search for Profiles
+        Search
       </Text>
       <TextInput
         label="Enter username"
@@ -72,6 +72,7 @@ const SearchProfileScreen = () => {
               />
             </TouchableOpacity>
           )}
+          style={styles.list} 
         />
       )}
     </View>
@@ -96,8 +97,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E3F2FD', 
   },
   userItem: {
-    padding: 10,
+    width: '100%', 
+    paddingVertical: 10, 
     marginVertical: 6,
+    paddingHorizontal: 0, 
+  },
+  list: {
     width: '100%',
   },
 });
