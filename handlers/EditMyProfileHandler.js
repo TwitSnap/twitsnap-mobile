@@ -2,11 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GATEWAY_URL } from '../constants';
 
 const headers = {
-    'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
 };
 
-const EditMyProfileHandler = async (username, phone, country, description) => {
+const EditMyProfileHandler = async (username, phone, country, description, photo) => {
     try {
         const token = await AsyncStorage.getItem('token');
 
@@ -19,17 +18,29 @@ const EditMyProfileHandler = async (username, phone, country, description) => {
             'Authorization': `Bearer ${token}`, 
         };
 
-        const requestBody = {
-            username,
-            phone,
-            country,
-            description
-        };
+        
+        const formData = new FormData();
 
+        formData.append('username', username);
+        formData.append('phone', phone);
+        formData.append('country', country);
+        formData.append('description', description);
+
+        if (photo) {
+            const uriParts = photo.split('.');
+            const fileType = uriParts[uriParts.length - 1];
+
+            formData.append('photo', {
+                uri: photo,
+                name: `image.${fileType}`,
+                type: `image/${fileType}`,
+            });
+        }
+       
         const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
             method: 'PATCH',
-            headers: authHeaders,
-            body: JSON.stringify(requestBody),
+            headers: authHeaders, 
+            body: formData,
         });
 
         const responseJson = await response.json();

@@ -45,11 +45,8 @@ const RegisterScreen = () => {
             );
 
             if (result === 0) {
-                Alert.alert('Success', 'Account registered successfully');
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'LoginScreen' }],
-                });
+           
+                navigation.navigate('RegisterPinScreen');
             } else {
                 Alert.alert("Registration failed", result.message);
             }

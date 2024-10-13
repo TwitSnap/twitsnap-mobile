@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { TextInput, List, Text } from 'react-native-paper';
+import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { TextInput, List, Text, Avatar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import ListUsersHandler from '../handlers/ListUsersHandler';
 import GetProfileHandler from "../handlers/GetProfileHandler";
@@ -68,7 +68,8 @@ const SearchProfileScreen = () => {
               <List.Item
                 title={`${item.username}`}
                 style={styles.userItem}
-                left={(props) => <List.Icon {...props} icon="account" />}
+                right={(props) => <List.Icon {...props} icon="account" />}
+                left={() => <List.Image source={{ uri: item.photo }} style={styles.avatar} />}
               />
             </TouchableOpacity>
           )}
@@ -104,6 +105,11 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '100%',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 });
 
