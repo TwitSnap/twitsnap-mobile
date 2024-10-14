@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { Text, Card, Button, HelperText, Avatar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from "@react-navigation/native";
@@ -8,7 +8,8 @@ import * as ImagePicker from 'expo-image-picker';
 import fetchUser from "../functions/fetchUser";
 import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
-
+import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
+import CustomButton from '../components/CustomButton';
 
 const ProfileScreen = () => {
     const { userId, allowEdit } = useRoute().params || {};
@@ -23,6 +24,7 @@ const ProfileScreen = () => {
     const [newPhoto, setNewPhoto] = useState(photo);
     const [usernameError, setUsernameError] = useState(false);
     const [newCountry, setNewCountry] = useState(country);
+    const [posts, setPosts] = useState([])
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -35,6 +37,8 @@ const ProfileScreen = () => {
                     setNewPhoto(`${loggedInUser.photo}?timestamp=${new Date().getTime()}`);
                     setCountry(loggedInUser.country);
                     setNewCountry(loggedInUser.country);
+                    const userPosts = await GetUserPostsHandler(loggedInUser.uid);
+                    setPosts(userPosts.posts);
                 } catch (error) {
                     console.error('Failed to load authenticated user profile', error);
                 }
@@ -46,6 +50,8 @@ const ProfileScreen = () => {
                         setBio(data.description);
                         setPhoto(`${data.photo}?timestamp=${new Date().getTime()}` || 'about:blank');
                         setCountry(data.country);
+                        const userPosts = await GetUserPostsHandler(userId);
+                        setPosts(userPosts.posts);
                     } else {
                         return (
                             <View style={styles.container}>
@@ -128,7 +134,7 @@ const ProfileScreen = () => {
 
    if (allowEdit) {
         return (
-            <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.container}>
                 <TouchableOpacity onPress={handleImagePick} style={styles.profileHeader}>
                     <Avatar.Image size={100} source={{uri: editing ? newPhoto : photo}} style={styles.photo}/>
                     {editing ? (
@@ -182,24 +188,34 @@ const ProfileScreen = () => {
                 </Card>
 
                 {editing ? (
-                      <>
-                        <Button mode="contained" onPress={handleSave} style={[styles.saveButton, { marginBottom: 15 }]} >
-                            Save
-                        </Button>
-                        <Button mode="outlined" onPress={handleCancel} style={styles.cancelButton}>
+                <>
+                    <CustomButton title="Save" onPress={handleSave} loading={loading} style={[styles.saveButton, { marginBottom: 15 }]} />
+                    <Button mode="contained" onPress={handleCancel} style={styles.cancelButton}>
                             Cancel
                         </Button>
-                    </>
-                ) : (
-                    <Button mode="outlined" onPress={() => setEditing(true)} style={styles.editButton}>
-                        Edit
-                    </Button>
-                )}
-            </View>
+                </>
+            ) : (
+                <CustomButton title="Edit" onPress={() => setEditing(true)} style={styles.editButton} />
+            )}
+
+            <View style={styles.postsContainer}>
+                    <Text style={styles.twitsHeader}>Twits</Text>
+                    {posts.length > 0 ? (
+                     posts.map((post) => (
+                            <View key={post.post_id} style={styles.post}>
+                                <Text style={styles.postContent}>{post.message}</Text>
+                            </View>
+                        ))
+                    ) : (
+                        <Text style={styles.noPostsText}>No twits available</Text>
+                    )}
+                </View>
+    
+             </ScrollView>
         );
     } else {
         return (
-            <View style={styles.container}>
+            <ScrollView style={styles.container}>
                 <TouchableOpacity onPress={handleImagePick} style={styles.profileHeader}>
                     <Avatar.Image size={100} source={{uri: photo}} style={styles.photo}/>
                     <Text style={styles.username}>{username}</Text>
@@ -218,16 +234,29 @@ const ProfileScreen = () => {
                         <Text>{country || 'Country not specified'}</Text> 
                     </Card.Content>
                 </Card>
-            </View>
+
+                <View style={styles.postsContainer}>
+                    <Text style={styles.twitsHeader}>Twits</Text>
+                    {posts.length > 0 ? (
+                     posts.map((post) => (
+                            <View key={post.post_id} style={styles.post}>
+                                <Text style={styles.postContent}>{post.message}</Text>
+                            </View>
+                        ))
+                    ) : (
+                        <Text style={styles.noPostsText}>No twits available</Text>
+                    )}
+                </View>
+            </ScrollView>
         );
     }
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexgrow: 1,
         backgroundColor: '#E3F2FD',
-        padding: 16,
+        padding: 10,
     },
     profileHeader: {
         alignItems: 'center',
@@ -254,10 +283,9 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         width: '100%',
     },
-    editButton: {
+    cancelButton: {
         marginTop: 16,
-        borderColor: '#1E88E5',
-        borderWidth: 1,
+        backgroundColor: '#db4a39',
     },
     saveButton: {
         marginTop: 16,
@@ -269,6 +297,54 @@ const styles = StyleSheet.create({
         padding: 16,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    postsContainer: {
+        backgroundColor: '#E3F2FD', 
+        padding: 16,
+        marginTop: 20,
+        width: '100%', 
+        borderRadius: 8,
+        flex: 1,
+    },
+    postsHeader: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    post: {
+        backgroundColor: '#ffffff',
+        padding: 10,
+        marginBottom: 10,
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+        elevation: 2,
+    },
+    postTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+     twitsHeader: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 8,
+        textAlign: 'center',
+        color: '#0D47A1', // Color azul para indicar que es clickeable
+    },
+    postContent: {
+        fontSize: 14,
+        color: '#666',
+    },
+    noPostsText: {
+        textAlign: 'center',
+        color: '#999',
     },
 });
 

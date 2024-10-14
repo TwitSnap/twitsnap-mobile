@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, Alert } from 'react-native';
+import { ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import { TextInput, Button, Title, Paragraph, Card, HelperText, Divider, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import * as Google from 'expo-auth-session/providers/google';
@@ -117,7 +117,7 @@ const LoginScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             <Image source={require('../assets/logo.png')} style={styles.image} />
             <Title style={styles.title}>TwitSnap</Title>
             <Paragraph style={styles.subtitle}>Please enter your credentials</Paragraph>
@@ -176,14 +176,13 @@ const LoginScreen = () => {
                     </Button>
                 </Card.Content>
             </Card>
-        </View>
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         padding: 16,
         backgroundColor: '#E3F2FD',
     },
