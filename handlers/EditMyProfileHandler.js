@@ -53,7 +53,7 @@ const EditMyProfileHandler = async (username, phone, country, description, photo
             throw new Error(responseJson.error || "Failed to update user profile.");
         }
     } catch (error) {
-        console.error("Error updating user profile: ", error);
+        console.log("Error updating user profile: ", error);
         const message =
             error.response?.data?.error ||
             error.message ||

@@ -3,7 +3,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-import RegisterPinScreen from '../screens/RegisterPinScreen';
+import VerifyPinScreen from '../screens/VerifyPinScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SearchProfileScreen from '../screens/SearchProfileScreen';
@@ -16,7 +16,7 @@ const AppNavigator = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name={"RegisterScreen"} component={RegisterScreen} options={{ headerShown: true, headerTitle: '', }} />
-        <Stack.Screen name={"RegisterPinScreen"} component={RegisterPinScreen} options={{ headerShown: true, headerTitle: '', }} />
+        <Stack.Screen name={"VerifyPinScreen"} component={VerifyPinScreen} options={{ headerShown: true, headerTitle: '', }} />
         <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown: true, headerTitle: '', }} />
         <Stack.Screen name={"WelcomeScreen"} component={WelcomeScreen} />
         <Stack.Screen name={"ProfileScreen"} component={ProfileScreen} options={{ headerShown: true, headerTitle: '', }} />

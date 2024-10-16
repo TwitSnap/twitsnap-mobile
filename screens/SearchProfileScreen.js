@@ -1,51 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { TextInput, List, Text, Avatar } from 'react-native-paper';
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TextInput, List, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import ListUsersHandler from '../handlers/ListUsersHandler';
-import GetProfileHandler from "../handlers/GetProfileHandler";
+import  UsersSearchHandler from '../handlers/UsersSearchHandler';
 
 const SearchProfileScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
-  const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const usersSearchHandler = useRef(new UsersSearchHandler()).current;
 
-  useEffect(() => {
-    const getUsers = async () => {
-      try {
-        const allUsers = await ListUsersHandler(); 
-        setUsers(allUsers);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getUsers();
-  }, []);
-
-  const handleSearch = (text) => {
+  const handleSearch = async (text) => {
     setSearchText(text);
+    setLoading(true); 
+
+    
+    
     if (text) {
-      const filtered = users.filter(user =>
-        user.username.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredUsers(filtered);
+        const users = await usersSearchHandler.searchUsers(text);
+        setFilteredUsers(users);  
     } else {
-      setFilteredUsers([]);
+      usersSearchHandler.cleanSearch();
+      setFilteredUsers([]); 
+       
     }
+    setLoading(false);
   };
 
-  const handleSelectUser = async (userId) => {
+  const handleSelectUser = (userId) => {
     navigation.navigate('ProfileScreen', { userId: userId, allowEdit: false });
   };
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="#1E88E5" style={{ flex: 1 }} />;
-  }
 
   return (
     <View style={styles.container}>
@@ -59,7 +44,9 @@ const SearchProfileScreen = () => {
         theme={{ colors: { primary: '#1E88E5' } }}
         style={styles.input}
       />
-      {filteredUsers.length > 0 && (
+      {loading ? (
+        <ActivityIndicator size="large" color="#1E88E5" style={{ flex: 1 }} />
+      ) : (
         <FlatList
           data={filteredUsers}
           keyExtractor={(item) => item.uid.toString()} 

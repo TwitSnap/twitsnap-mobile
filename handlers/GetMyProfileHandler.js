@@ -39,7 +39,7 @@ const GetMyProfileHandler = async () => {
                     retries++;
             }
         } catch (error) {
-            console.error("Error fetching user profile: ", error);
+            console.log("Error fetching user profile: ", error);
             console.log(`Retrying... attempt ${retries + 1}`);
 
             retries++;

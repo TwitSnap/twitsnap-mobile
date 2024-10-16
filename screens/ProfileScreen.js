@@ -10,6 +10,7 @@ import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
 import CustomButton from '../components/CustomButton';
+import Twit from '../components/Twit'
 
 const ProfileScreen = () => {
     const { userId, allowEdit } = useRoute().params || {};
@@ -202,9 +203,7 @@ const ProfileScreen = () => {
                     <Text style={styles.twitsHeader}>Twits</Text>
                     {posts.length > 0 ? (
                      posts.map((post) => (
-                            <View key={post.post_id} style={styles.post}>
-                                <Text style={styles.postContent}>{post.message}</Text>
-                            </View>
+                            <Twit key={post.post_id} post={post} username={username} photo={photo}/> 
                         ))
                     ) : (
                         <Text style={styles.noPostsText}>No twits available</Text>
@@ -239,9 +238,7 @@ const ProfileScreen = () => {
                     <Text style={styles.twitsHeader}>Twits</Text>
                     {posts.length > 0 ? (
                      posts.map((post) => (
-                            <View key={post.post_id} style={styles.post}>
-                                <Text style={styles.postContent}>{post.message}</Text>
-                            </View>
+                            <Twit key={post.post_id} post={post} username={username} photo={photo}/> 
                         ))
                     ) : (
                         <Text style={styles.noPostsText}>No twits available</Text>
@@ -336,7 +333,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 8,
         textAlign: 'center',
-        color: '#0D47A1', // Color azul para indicar que es clickeable
+        color: '#0D47A1', 
     },
     postContent: {
         fontSize: 14,

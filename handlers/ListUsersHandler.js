@@ -5,34 +5,53 @@ const headers = {
     'Content-Type': 'application/json',
 };
 
-const ListUsersHandler = async () => {
+const ListUsersHandler = async ({ username, offset = 0, limit = 10 }) => {
     let allUsers = [];
-    
-    try {
-        const token = await AsyncStorage.getItem('token');
+    let retries = 0;
+    const maxRetries = 5;  
 
-        const authHeaders = {
-            ...headers,
-            'Authorization': `Bearer ${token}`, 
-        };
+    if (!username || username.trim() === '') {
+        throw new Error('The username parameter is required and cannot be empty.');
+    }
 
-        const response = await fetch(`${GATEWAY_URL}/api/v1/users/`, {
-            method: 'GET',
-            headers: authHeaders,
-        });
-   
-        const datajson = await response.json(); 
-        console.log(datajson);
+    while (retries < maxRetries) {
+        try {
+            const token = await AsyncStorage.getItem('token');
 
-        if (response.status === 200) {
-            allUsers = datajson; 
-            return allUsers;
-        } else {
-            throw new Error(datajson.error || "Failed to fetch users.");
+            const authHeaders = {
+                ...headers,
+                'Authorization': `Bearer ${token}`, 
+            };
+
+        
+            let url = `${GATEWAY_URL}/api/v1/users/?username=${username}&offset=${offset}&limit=${limit}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: authHeaders,
+            });
+
+            const datajson = await response.json();
+            console.log(datajson);
+
+            if (response.status === 200) {
+                allUsers = datajson;
+                return allUsers;
+            } else {
+                console.log(`Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`);
+                retries++;
+                if (retries >= maxRetries) {
+                    throw new Error(datajson.error || "Failed to fetch users after multiple attempts.");
+                }
+            }
+        } catch (error) {
+            console.log('Error fetching users:', error.message);
+            retries++;
+            if (retries >= maxRetries) {
+                throw new Error("Maximum retry attempts reached. " + error.message);
+            }
+            console.log(`Retrying... attempt ${retries + 1}`);
         }
-    } catch (error) {
-        console.error('Error fetching users:', error.message);
-        throw error; 
     }
 };
 

@@ -27,13 +27,12 @@ const RegisterHandler = async (
                 headers: headers,
                 body: JSON.stringify(requestBody),
             });
-
             const responseJson = await response.json();
             console.log(responseJson);
 
             switch (response.status) {
                 case 201: 
-                    return 0; 
+                    return responseJson; 
                 case 409: 
                     return new Error(responseJson.message);
                 case 422: 

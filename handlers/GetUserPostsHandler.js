@@ -37,7 +37,7 @@ const GetUserPostsHandler = async (userId) => {
                 retries++;
             }
         } catch (error) {
-            console.error("Error fetching user posts: ", error);
+            console.log("Error fetching user posts: ", error);
             console.log(`Retrying... attempt ${retries + 1}`);
             retries++;
 

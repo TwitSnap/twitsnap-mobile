@@ -30,7 +30,7 @@ const GetProfileHandler = async (userId) => {
                 throw new Error(responseJson.error || "Failed to fetch user profile.");
         }
     } catch (error) {
-        console.error('Error fetching user profile:', error.message);
+        console.log('Error fetching user profile:', error.message);
         throw error; 
     }
 };

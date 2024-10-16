@@ -91,15 +91,21 @@ const LoginScreen = () => {
             const result = await LoginHandler(email, password);
 
             if (result === 0) {
+                const profileData = await GetMyProfileHandler();
+                setLoggedInUser(profileData);
+                if (!profileData.verified) {
+                 navigation.navigate('VerifyPinScreen', {
+                 user_id: profileData.uid,
+                 email: profileData.email,
+                 });
+                } else {
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'WelcomeScreen' }],
-                });
-                const profileData = await GetMyProfileHandler();
-                setLoggedInUser(profileData);
-            } else {
-                Alert.alert("Login failed", result.message);
+                });}
             }
+            else if (result) {Alert.alert("Login failed", result.message);}
+            else {Alert.alert("Login failed", "Server error"); }
 
             setIsLoading(false);
         } catch (error) {

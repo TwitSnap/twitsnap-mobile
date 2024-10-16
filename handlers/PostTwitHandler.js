@@ -43,7 +43,7 @@ const PostTwitHandler = async (body, tags) => {
                     retries++;
             }
         } catch (error) {
-            console.error("Error posting twit: ", error);
+            console.log("Error posting twit: ", error);
             console.log(`Retrying... attempt ${retries + 1}`);
 
             retries++;

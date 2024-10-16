@@ -44,12 +44,16 @@ const RegisterScreen = () => {
                 username, email, password, phone, country
             );
 
-            if (result === 0) {
-           
-                navigation.navigate('RegisterPinScreen');
-            } else {
-                Alert.alert("Registration failed", result.message);
+            if (result && result.uid) {
+            Alert.alert('Success', 'Account registered successfully');
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'LoginScreen' }],
+                });
+            } else if (result) {
+             Alert.alert("Registration failed", result.message);
             }
+            else {Alert.alert("Registration failed", "Server error"); }
 
             setIsLoading(false);
         } catch (error) {
