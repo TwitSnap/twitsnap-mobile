@@ -1,8 +1,8 @@
-import React from 'react';
-import { StyleSheet } from 'react-native'; 
-import { Button } from 'react-native-paper';
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Button } from "react-native-paper";
 
-const CustomButton = ({ title, onPress, loading=false }) => {
+const CustomButton = ({ title, onPress, loading = false }) => {
   return (
     <Button
       mode="contained"
@@ -18,7 +18,7 @@ const CustomButton = ({ title, onPress, loading=false }) => {
 const styles = StyleSheet.create({
   button: {
     marginTop: 16,
-    backgroundColor: '#1E88E5',
+    backgroundColor: "#1E88E5",
   },
 });
 

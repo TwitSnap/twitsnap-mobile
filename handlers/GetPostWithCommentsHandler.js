@@ -6,7 +6,7 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const PostTwitHandler = async (body, tags) => {
+const GetPostWithCommentsHandler = async (postId) => {
   let retries = 0;
   const maxRetries = 5;
 
@@ -23,33 +23,24 @@ const PostTwitHandler = async (body, tags) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(`${GATEWAY_URL}/v1/twit`, {
-        method: "POST",
+      const response = await fetch(`${GATEWAY_URL}/v1/twit/post?id=${postId}`, {
+        method: "GET",
         headers: authHeaders,
-        body: JSON.stringify({
-          body, 
-          tags, 
-        }),
       });
-      console.log(response);
 
-      switch (response.status) {
-        case 204:
-          return 0;
-        case 400:
-          throw new Error(
-            "Invalid request. Check the request body or parameters.",
-          );
-        default:
-          console.log(
-            `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
-          );
-          retries++;
+      const responseJson = await response.json();
+      console.log(responseJson);
+      if (response.status === 200) {
+        return responseJson;
+      } else {
+        console.log(
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
+        );
+        retries++;
       }
     } catch (error) {
-      console.log("Error posting twit: ", error);
+      console.log("Error fetching post with comments: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
-
       retries++;
 
       if (retries >= maxRetries) {
@@ -59,4 +50,4 @@ const PostTwitHandler = async (body, tags) => {
   }
 };
 
-export default PostTwitHandler;
+export default GetPostWithCommentsHandler;

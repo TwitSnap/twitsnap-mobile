@@ -1,32 +1,32 @@
-import {createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-    const [loggedInUser, setLoggedInUser] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
-    useEffect(() => {
-        const initUserContext = async () => {
-            const noUser = {
-                'id': '',
-                'username': 'unknown',
-                'description': '',
-                'avatar': 'about:blank',
-                'country': '',
-            };
+  useEffect(() => {
+    const initUserContext = async () => {
+      const noUser = {
+        id: "",
+        username: "unknown",
+        description: "",
+        avatar: "about:blank",
+        country: "",
+      };
 
-            setLoggedInUser(noUser);
-        }
+      setLoggedInUser(noUser);
+    };
 
-        initUserContext();
-    }, []);
+    initUserContext();
+  }, []);
 
-    return (
-        <UserContext.Provider value={{ loggedInUser, setLoggedInUser }}>
-            {children}
-        </UserContext.Provider>
-    );
-}
+  return (
+    <UserContext.Provider value={{ loggedInUser, setLoggedInUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
 
 export function useUser() {
-    return useContext(UserContext);
+  return useContext(UserContext);
 }

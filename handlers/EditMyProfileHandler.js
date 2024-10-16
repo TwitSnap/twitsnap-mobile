@@ -1,65 +1,82 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GATEWAY_URL } from '../constants';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GATEWAY_URL } from "../constants";
 
 const headers = {
-    'Access-Control-Allow-Origin': '*',
+  "Access-Control-Allow-Origin": "*",
 };
 
-const EditMyProfileHandler = async (username, phone, country, description, photo) => {
+const EditMyProfileHandler = async (
+  username,
+  phone,
+  country,
+  description,
+  photo,
+) => {
+  let retries = 0;
+  const maxRetries = 5;
+
+  while (retries < maxRetries) {
     try {
-        const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem("token");
 
-        if (!token) {
-            throw new Error("User is not authenticated. No token found.");
-        }
+      if (!token) {
+        throw new Error("User is not authenticated. No token found.");
+      }
 
-        const authHeaders = {
-            ...headers,
-            'Authorization': `Bearer ${token}`, 
-        };
+      const authHeaders = {
+        ...headers,
+        Authorization: `Bearer ${token}`,
+      };
 
-        
-        const formData = new FormData();
+      const formData = new FormData();
 
-        formData.append('username', username);
-        formData.append('phone', phone);
-        formData.append('country', country);
-        formData.append('description', description);
+      formData.append("username", username);
+      formData.append("phone", phone);
+      formData.append("country", country);
+      formData.append("description", description);
 
-        if (photo) {
-            const uriParts = photo.split('.');
-            const fileType = uriParts[uriParts.length - 1];
+      if (photo) {
+        const uriParts = photo.split(".");
+        const fileType = uriParts[uriParts.length - 1];
 
-            formData.append('photo', {
-                uri: photo,
-                name: `image.${fileType}`,
-                type: `image/${fileType}`,
-            });
-        }
-       
-        const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
-            method: 'PATCH',
-            headers: authHeaders, 
-            body: formData,
+        formData.append("photo", {
+          uri: photo,
+          name: `image.${fileType}`,
+          type: `image/${fileType}`,
         });
+      }
 
-        const responseJson = await response.json();
+      const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
+        method: "PATCH",
+        headers: authHeaders,
+        body: formData,
+      });
 
-        if (response.status === 200) {
-            return responseJson; 
-        } else if (response.status === 422) {
-            throw new Error('Validation error: ' + JSON.stringify(responseJson.detail));
-        } else {
-            throw new Error(responseJson.error || "Failed to update user profile.");
-        }
+      const responseJson = await response.json();
+
+      if (response.status === 200) {
+        return responseJson;
+      } else if (response.status === 422) {
+        throw new Error(
+          "Validation error: " + JSON.stringify(responseJson.detail),
+        );
+      } else {
+        retries++;
+        throw new Error(responseJson.error || "Failed to update user profile.");
+      }
     } catch (error) {
-        console.log("Error updating user profile: ", error);
-        const message =
-            error.response?.data?.error ||
-            error.message ||
-            'Service is not available at the moment';
-        throw new Error(message);
+      console.log("Error updating user profile: ", error);
+      const message =
+        error.response?.data?.error ||
+        error.message ||
+        "Service is not available at the moment";
+      retries++;
+
+      if (retries >= maxRetries) {
+        throw new Error("Maximum retry attempts reached. " + error.message);
+      }
     }
+  }
 };
 
 export default EditMyProfileHandler;

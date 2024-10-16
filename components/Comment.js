@@ -1,28 +1,53 @@
-import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Image, ActivityIndicator } from "react-native";
+import GetProfileHandler from "../handlers/GetProfileHandler";
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleString("en-GB", {
-    // Cambia 'es-ES' a tu configuración regional preferida
     year: "numeric",
-    month: "long", // 'short' para abreviado
+    month: "long", 
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false, // Cambia a true si deseas un formato de 12 horas
+    hour12: false, 
   });
 };
 
-const Twit = ({ post, username, photo }) => {
-  if (!post) {
+const Comment = ({ comment }) => {
+  const [username, setUsername] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        console.log(comment);
+        const profile = await GetProfileHandler(comment.commenter_token);
+        setUsername(profile.username);
+        setPhoto(profile.photo);
+      } catch (error) {
+        console.log("Error fetching user profile:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [comment.commenter_token]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  if (!comment) {
     return null;
   }
 
-  const time = formatTimestamp(post.created_at);
+  const time = formatTimestamp(comment.created_at);
 
   return (
-    <View style={styles.post}>
+    <View style={styles.comment}>
       <View style={styles.header}>
         <Image source={{ uri: photo }} style={styles.avatar} />
         <View style={styles.userInfo}>
@@ -30,16 +55,13 @@ const Twit = ({ post, username, photo }) => {
           <Text style={styles.timestamp}>{time}</Text>
         </View>
       </View>
-      <Text style={styles.postContent}>{post.message}</Text>
-      <View style={styles.commentContainer}>
-        <Text style={styles.comment}>{post.ammount}📩</Text>
-      </View>
+      <Text style={styles.commentContent}>{comment.message}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  post: {
+  comment: {
     backgroundColor: "#ffffff",
     padding: 10,
     marginBottom: 10,
@@ -76,20 +98,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#999",
   },
-  postContent: {
+  commentContent: {
     fontSize: 14,
     padding: 5,
     color: "#666",
     marginBottom: 5,
   },
-  commentContainer: {
-    marginTop: 5,
-    marginLeft: 350,
-  },
-  comment: {
-    fontSize: 14,
-    color: "#1E88E5",
-  },
 });
 
-export default Twit;
+export default Comment;
