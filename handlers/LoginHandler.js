@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
   "Content-Type": "application/json",
@@ -12,7 +12,7 @@ const LoginHandler = async (email, password) => {
   };
 
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {

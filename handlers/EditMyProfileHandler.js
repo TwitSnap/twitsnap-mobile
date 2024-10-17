@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +13,7 @@ const EditMyProfileHandler = async (
   photo,
 ) => {
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {
@@ -30,10 +30,18 @@ const EditMyProfileHandler = async (
 
       const formData = new FormData();
 
-      formData.append("username", username);
-      formData.append("phone", phone);
-      formData.append("country", country);
-      formData.append("description", description);
+      if (username) {
+        formData.append("username", username);
+      }
+      if (phone) {
+        formData.append("phone", phone);
+      }
+      if (country) {
+        formData.append("country", country);
+      }
+      if (description) {
+        formData.append("description", description);
+      }
 
       if (photo) {
         const uriParts = photo.split(".");
@@ -41,17 +49,17 @@ const EditMyProfileHandler = async (
 
         formData.append("photo", {
           uri: photo,
-          name: `image.${fileType}`,
+          name: `ima4ge.${fileType}`,
           type: `image/${fileType}`,
         });
       }
-
+      console.log(formData);
       const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
         method: "PATCH",
         headers: authHeaders,
         body: formData,
       });
-
+      console.log(formData);
       const responseJson = await response.json();
 
       if (response.status === 200) {
@@ -62,7 +70,9 @@ const EditMyProfileHandler = async (
         );
       } else {
         retries++;
-        throw new Error(responseJson.error || "Failed to update user profile.");
+        console.log(
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
+        );
       }
     } catch (error) {
       console.log("Error updating user profile: ", error);

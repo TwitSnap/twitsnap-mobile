@@ -1,4 +1,5 @@
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -6,18 +7,26 @@ const headers = {
 
 const ResendPinHandler = async (user_id) => {
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {
+      const token = await AsyncStorage.getItem("token");
+      const authHeaders = {
+        ...headers,
+        Authorization: `Bearer ${token}`,
+      };
+
       const response = await fetch(
         `${GATEWAY_URL}/api/v1/users/${user_id}/pin`,
         {
           method: "POST",
-          headers: headers,
+          headers: authHeaders,
         },
       );
 
+      const responseJson = await response.json();
+      console.log(responseJson);
       console.log(response);
 
       switch (response.status) {

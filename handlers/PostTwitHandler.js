@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
   "Content-Type": "application/json",
@@ -8,7 +8,7 @@ const headers = {
 
 const PostTwitHandler = async (body, tags) => {
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {
@@ -27,8 +27,8 @@ const PostTwitHandler = async (body, tags) => {
         method: "POST",
         headers: authHeaders,
         body: JSON.stringify({
-          body, 
-          tags, 
+          body,
+          tags,
         }),
       });
       console.log(response);

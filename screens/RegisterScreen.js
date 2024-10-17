@@ -18,6 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import CustomButton from "../components/CustomButton";
 import RegisterHandler from "../handlers/RegisterHandler";
+import CountryPicker from "react-native-country-picker-modal";
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
@@ -132,17 +133,22 @@ const RegisterScreen = () => {
               Just here for adding space between the 2 inputs.
             </HelperText>
             <Divider style={styles.divider} />
-            <TextInput
-              style={styles.input}
-              theme={{ colors: { primary: "#1E88E5" } }}
-              autoCapitalize={"none"}
-              label="Country"
-              value={country}
-              onChangeText={setCountry}
-            />
+            <View style={styles.inputContainer}>
+              <CountryPicker
+                countryCode={country}
+                withFilter
+                withFlag
+                withCountryNameButton
+                withAlphaFilter
+                onSelect={(country) => {
+                  setCountry(country.cca2);
+                }}
+              />
+            </View>
             <HelperText type="error" visible={false}>
               Just here for adding space between the 2 inputs.
             </HelperText>
+
             <Divider style={styles.divider} />
             <TextInput
               style={styles.input}
@@ -221,6 +227,14 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 12,
     backgroundColor: "#FFFFFF",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+    padding: 18,
+    borderBottomWidth: 0.2,
   },
   button: {
     marginTop: 16,

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet, Image, Alert } from "react-native";
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import {
   TextInput,
   Button,
@@ -99,11 +106,9 @@ const LoginScreen = () => {
       return;
     }
 
-    setIsLoading(true);
-
     try {
       const result = await LoginHandler(email, password);
-
+      setIsLoading(true);
       if (result === 0) {
         const profileData = await GetMyProfileHandler();
         setLoggedInUser(profileData);
@@ -138,6 +143,11 @@ const LoginScreen = () => {
   const handleForgotPassword = () => {
     navigation.navigate("ForgotPasswordScreen");
   };
+
+  //if (isLoading) return (
+  //<View style={styles.loadingContainer}>
+  //<ActivityIndicator size="large" color="#0000ff" />
+  //</View>);
 
   return (
     <ScrollView style={styles.container}>
@@ -221,6 +231,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: "#E3F2FD",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#E3F2FD",
   },
   image: {

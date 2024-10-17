@@ -20,6 +20,7 @@ import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
 import CustomButton from "../components/CustomButton";
 import Twit from "../components/Twit";
+import CountryPicker, { Flag } from "react-native-country-picker-modal";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -30,13 +31,16 @@ const ProfileScreen = () => {
   const [photo, setPhoto] = useState("about:blank");
   const [country, setCountry] = useState("");
   const [editing, setEditing] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState(false);
   const [loading, setLoading] = useState(true);
   const [twitsLoading, setTwitsLoading] = useState(true);
   const [newUsername, setNewUsername] = useState(username);
   const [newPhoto, setNewPhoto] = useState(photo);
   const [usernameError, setUsernameError] = useState(false);
   const [newCountry, setNewCountry] = useState(country);
+  const [newBio, setNewBio] = useState(bio);
   const [posts, setPosts] = useState([]);
+  const [isEditableLoading, setIsEditableLoading] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -45,10 +49,14 @@ const ProfileScreen = () => {
           setUsername(loggedInUser.username);
           setNewUsername(loggedInUser.username);
           setBio(loggedInUser.description);
+          setNewBio(loggedInUser.description);
           setPhoto(`${loggedInUser.photo}?timestamp=${new Date().getTime()}`);
           setNewPhoto(
             `${loggedInUser.photo}?timestamp=${new Date().getTime()}`,
           );
+          if (loggedInUser.country.length != 2) {
+            loggedInUser.country = "";
+          }
           setCountry(loggedInUser.country);
           setNewCountry(loggedInUser.country);
           setLoading(false);
@@ -63,12 +71,18 @@ const ProfileScreen = () => {
           const data = await GetProfileHandler(userId);
           if (data) {
             setUsername(data.username);
+            setNewUsername(data.username);
             setBio(data.description);
+            setNewBio(data.description);
             setPhoto(
               `${data.photo}?timestamp=${new Date().getTime()}` ||
                 "about:blank",
             );
+            if (data.country.length != 2) {
+              data.country = "";
+            }
             setCountry(data.country);
+            setNewCountry(data.country);
             setLoading(false);
             const userPosts = await GetUserPostsHandler(userId);
             setPosts(userPosts.posts);
@@ -85,6 +99,7 @@ const ProfileScreen = () => {
           setBio("Failed to load user.");
         }
       }
+
       setLoading(false);
     };
 
@@ -111,14 +126,15 @@ const ProfileScreen = () => {
       return;
     }
     setUsernameError(false);
-
+    setEditing(false);
+    setIsEditableLoading(true);
     try {
       const profileData = await EditMyProfileHandler(
-        newUsername,
-        loggedInUser.phone,
-        newCountry,
-        bio,
-        newPhoto,
+        newUsername !== username ? newUsername : undefined, // Solo se envía si es diferente
+        undefined,
+        newCountry !== country ? newCountry : undefined, // Solo se envía si es diferente
+        newBio !== bio ? newBio : undefined, // Asumiendo que tienes originalBio
+        editingPhoto ? newPhoto : undefined, // Solo se envía si es diferente
       );
       setLoggedInUser(profileData);
 
@@ -127,12 +143,14 @@ const ProfileScreen = () => {
       setUsername(profileData.username);
       setNewUsername(profileData.username);
       setBio(profileData.description);
+      setNewBio(profileData.description);
       setPhoto(`${profileData.photo}?timestamp=${new Date().getTime()}`);
       setNewPhoto(`${profileData.photo}?timestamp=${new Date().getTime()}`);
       setCountry(profileData.country);
       setNewCountry(profileData.country);
 
-      setEditing(false);
+      setIsEditableLoading(false);
+      setEditingPhoto(false);
       Alert.alert("Success", "Profile updated successfully!");
     } catch (error) {
       console.error("Failed to save profile data", error);
@@ -161,6 +179,7 @@ const ProfileScreen = () => {
       });
 
       if (!result.canceled) {
+        setEditingPhoto(true);
         setNewPhoto(result.assets[0].uri);
       }
     }
@@ -168,8 +187,10 @@ const ProfileScreen = () => {
 
   const handleCancel = () => {
     setEditing(false);
+    setEditingPhoto(false);
+    setNewPhoto(photo);
     setNewUsername(username);
-    setBio(loggedInUser.description);
+    setNewBio(loggedInUser.description);
     setNewCountry(country);
   };
 
@@ -182,7 +203,7 @@ const ProfileScreen = () => {
         >
           <Avatar.Image
             size={100}
-            source={{ uri: editing ? newPhoto : photo }}
+            source={{ uri: editingPhoto ? newPhoto : photo }}
             style={styles.photo}
           />
           {editing ? (
@@ -198,7 +219,12 @@ const ProfileScreen = () => {
               </HelperText>
             </>
           ) : (
-            <Text style={styles.username}>{username}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.username}>{username}</Text>
+              {country && country.length === 2 && (
+                <Flag countryCode={country} />
+              )}
+            </View>
           )}
         </TouchableOpacity>
 
@@ -208,8 +234,8 @@ const ProfileScreen = () => {
             {editing ? (
               <TextInput
                 style={styles.input}
-                value={bio}
-                onChangeText={setBio}
+                value={newBio}
+                onChangeText={setNewBio}
                 multiline
                 numberOfLines={4}
               />
@@ -219,23 +245,27 @@ const ProfileScreen = () => {
           </Card.Content>
         </Card>
 
-        <Card style={styles.card}>
-          <Card.Title title="Country" />
-          <Card.Content>
-            {editing ? (
-              <TextInput
-                style={styles.input}
-                value={newCountry}
-                onChangeText={setNewCountry}
-                placeholder="Edit Country"
+        {editing && (
+          <Card style={styles.card}>
+            <Card.Title title="Country" />
+            <Card.Content>
+              <CountryPicker
+                countryCode={newCountry}
+                withFilter
+                withFlag
+                withCountryNameButton
+                withAlphaFilter
+                onSelect={(country) => {
+                  setNewCountry(country.cca2);
+                }}
               />
-            ) : (
-              <Text>{country || "Country not specified"}</Text>
-            )}
-          </Card.Content>
-        </Card>
+            </Card.Content>
+          </Card>
+        )}
 
-        {editing ? (
+        {isEditableLoading ? ( // Si está cargando, mostrar ActivityIndicator
+          <ActivityIndicator size="large" color="#1E88E5" />
+        ) : editing ? ( // Si no está cargando y está en modo edición, mostrar los botones
           <>
             <CustomButton
               title="Save"
@@ -294,20 +324,16 @@ const ProfileScreen = () => {
             source={{ uri: photo }}
             style={styles.photo}
           />
-          <Text style={styles.username}>{username}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.username}>{username}</Text>
+            {country && country.length === 2 && <Flag countryCode={country} />}
+          </View>
         </TouchableOpacity>
 
         <Card style={styles.card}>
           <Card.Title title="Bio" />
           <Card.Content>
             <Text>{bio || "No bio specified"}</Text>
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.card}>
-          <Card.Title title="Country" />
-          <Card.Content>
-            <Text>{country || "Country not specified"}</Text>
           </Card.Content>
         </Card>
 

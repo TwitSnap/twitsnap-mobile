@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
   "Content-Type": "application/json",
@@ -8,7 +8,7 @@ const headers = {
 const ListUsersHandler = async ({ username, offset = 0, limit = 10 }) => {
   let allUsers = [];
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   if (!username || username.trim() === "") {
     throw new Error("The username parameter is required and cannot be empty.");

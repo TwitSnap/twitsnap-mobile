@@ -1,14 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
   "Content-Type": "application/json",
-  Accept: "application/json", 
+  Accept: "application/json",
 };
 
 const GetProfileHandler = async (userId) => {
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {

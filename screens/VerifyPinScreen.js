@@ -29,10 +29,16 @@ const VerifyPinScreen = () => {
       setPinError(false);
 
       try {
-        await VerifyRegisterPinHandler(user_id, Pin);
-
-        Alert.alert("Success", "Account registered successfully");
-        navigation.navigate("WelcomeScreen");
+        const result = await VerifyRegisterPinHandler(user_id, Pin);
+        if (result == 0) {
+          Alert.alert("Success", "Account registered successfully");
+          navigation.navigate("WelcomeScreen");
+        } else {
+          Alert.alert(
+            "Incorrect PIN",
+            "The PIN entered is incorrect. Please check your email and try again.",
+          );
+        }
       } catch (error) {
         Alert.alert("Error", error.message);
       }

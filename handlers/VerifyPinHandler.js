@@ -1,4 +1,5 @@
-import { GATEWAY_URL } from "../constants";
+import { GATEWAY_URL, RETRIES } from "../constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const headers = {
   "Content-Type": "application/json",
@@ -7,28 +8,35 @@ const headers = {
 
 const VerifyPinHandler = async (user_id, pin) => {
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {
+      const token = await AsyncStorage.getItem("token");
+      const authHeaders = {
+        ...headers,
+        Authorization: `Bearer ${token}`,
+      };
+
       const response = await fetch(
-        `${GATEWAY_URL}/api/v1/users/confirmation?user_id=${user_id}&pin=${pin}`,
+        `${GATEWAY_URL}/api/v1/users/confirmation?id=${user_id}&pin=${pin}`,
         {
           method: "POST",
-          headers: headers,
+          headers: authHeaders,
         },
       );
 
       console.log(response);
       const responseJson = await response.json();
       console.log(responseJson);
+
       switch (response.status) {
-        case 204:
+        case 200:
           return 0;
         case 400:
-          throw new Error("Invalid request. Check the user_id or pin.");
+          throw new Error("Invalid request. Check the user_id.");
         case 404:
-          throw new Error(response.message);
+          return 1;
         default:
           console.log(
             `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,

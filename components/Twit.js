@@ -24,7 +24,10 @@ const Twit = ({ post, username, photo }) => {
   return (
     <View style={styles.post}>
       <View style={styles.header}>
-        <Image source={{ uri: photo }} style={styles.avatar} />
+        <Image
+          source={{ uri: `${photo}?timestamp=${new Date().getTime()}` }}
+          style={styles.avatar}
+        />
         <View style={styles.userInfo}>
           <Text style={styles.username}>{username}</Text>
           <Text style={styles.timestamp}>{time}</Text>
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
   },
   commentContainer: {
     marginTop: 5,
-    marginLeft: 350,
+    alignItems: "left",
   },
   comment: {
     fontSize: 14,

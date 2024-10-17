@@ -29,6 +29,7 @@ const TwitScreen = ({ route }) => {
       try {
         await CommentPostHandler(comment, twit.post_id);
         await fetchPostWithComments();
+        setComment("");
       } catch (error) {
         console.error("Error al enviar el comentario: ", error.message);
       }

@@ -61,7 +61,9 @@ const SearchProfileScreen = () => {
                 right={(props) => <List.Icon {...props} icon="account" />}
                 left={() => (
                   <List.Image
-                    source={{ uri: item.photo }}
+                    source={{
+                      uri: `${item.photo}?timestamp=${new Date().getTime()}`,
+                    }}
                     style={styles.avatar}
                   />
                 )}

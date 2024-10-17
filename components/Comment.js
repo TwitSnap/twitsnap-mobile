@@ -1,22 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import GetProfileHandler from "../handlers/GetProfileHandler";
+import { useNavigation } from "@react-navigation/native";
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleString("en-GB", {
     year: "numeric",
-    month: "long", 
+    month: "long",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false, 
+    hour12: false,
   });
 };
 
 const Comment = ({ comment }) => {
+  const navigation = useNavigation();
   const [username, setUsername] = useState("");
-  const [photo, setPhoto] = useState("");
+  const [photo, setPhoto] = useState("about:blank");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,8 +45,24 @@ const Comment = ({ comment }) => {
     fetchUserProfile();
   }, [comment.commenter_token]);
 
+  const handleProfilePress = () => {
+    navigation.navigate({
+      name: "ProfileScreen",
+      key: comment.commenter_token,
+      params: {
+        userId: comment.commenter_token,
+        allowEdit: false,
+        key: comment.commenter_token, // Pasar el token del usuario a la pantalla del perfil
+      },
+    });
+  };
+
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
 
   if (!comment) {
@@ -48,13 +73,18 @@ const Comment = ({ comment }) => {
 
   return (
     <View style={styles.comment}>
-      <View style={styles.header}>
-        <Image source={{ uri: photo }} style={styles.avatar} />
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>{username}</Text>
-          <Text style={styles.timestamp}>{time}</Text>
+      <TouchableOpacity onPress={handleProfilePress}>
+        <View style={styles.header}>
+          <Image
+            source={{ uri: `${photo}?timestamp=${new Date().getTime()}` }}
+            style={styles.avatar}
+          />
+          <View style={styles.userInfo}>
+            <Text style={styles.username}>{username}</Text>
+            <Text style={styles.timestamp}>{time}</Text>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
       <Text style={styles.commentContent}>{comment.message}</Text>
     </View>
   );
@@ -103,6 +133,11 @@ const styles = StyleSheet.create({
     padding: 5,
     color: "#666",
     marginBottom: 5,
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 });
 
