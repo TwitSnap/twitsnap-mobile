@@ -1,13 +1,29 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Modal, TextInput } from "react-native";
-import { Appbar, IconButton, Title, FAB, Button } from "react-native-paper";
+import {
+  View,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import {
+  Appbar,
+  IconButton,
+  Title,
+  FAB,
+  Button,
+  Avatar,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PostTwitHandler from "../handlers/PostTwitHandler";
 import { Snackbar } from "react-native-paper";
+import { useUser } from "../contexts/UserContext";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
+  const { loggedInUser } = useUser();
   const [modalVisible, setModalVisible] = useState(false);
   const [body, setBody] = useState("");
   const [tags, setTags] = useState("");
@@ -50,13 +66,19 @@ const WelcomeScreen = () => {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <IconButton
-          icon="account-circle"
-          color="#1E88E5"
-          size={28}
+        <TouchableOpacity
           onPress={handleViewProfile}
-          style={styles.iconButton}
-        />
+          style={styles.profileHeader}
+        >
+          <Avatar.Image
+            source={{
+              uri: `${loggedInUser.photo}?timestamp=${new Date().getTime()}`,
+            }}
+            style={styles.user}
+            size={28}
+            onPress={handleViewProfile}
+          />
+        </TouchableOpacity>
         <IconButton
           icon="magnify"
           color="#1E88E5"
@@ -140,6 +162,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#E3F2FD",
   },
+  user: {
+    left: 6,
+  },
   appbar: {
     backgroundColor: "transparent",
     elevation: 0,
@@ -186,6 +211,9 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#1E88E5",
+  },
+  profileHeader: {
+    padding: 14,
   },
   cancelButton: {
     color: "#757575",

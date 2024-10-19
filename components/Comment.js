@@ -32,7 +32,7 @@ const Comment = ({ comment }) => {
     const fetchUserProfile = async () => {
       try {
         console.log(comment);
-        const profile = await GetProfileHandler(comment.commenter_token);
+        const profile = await GetProfileHandler(comment.created_by);
         setUsername(profile.username);
         setPhoto(profile.photo);
       } catch (error) {
@@ -43,16 +43,16 @@ const Comment = ({ comment }) => {
     };
 
     fetchUserProfile();
-  }, [comment.commenter_token]);
+  }, [comment.created_by]);
 
   const handleProfilePress = () => {
     navigation.navigate({
       name: "ProfileScreen",
-      key: comment.commenter_token,
+      key: comment.created_by,
       params: {
-        userId: comment.commenter_token,
+        userId: comment.created_by,
         allowEdit: false,
-        key: comment.commenter_token, // Pasar el token del usuario a la pantalla del perfil
+        key: comment.created_by,
       },
     });
   };

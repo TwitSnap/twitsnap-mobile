@@ -76,6 +76,7 @@ const VerifyPinScreen = () => {
             onChangeText={setPin}
             theme={{ colors: { primary: "#1E88E5" } }}
             error={PinError}
+            keyboardType="numeric"
           />
           <HelperText type="error" visible={PinError}>
             Pin is required

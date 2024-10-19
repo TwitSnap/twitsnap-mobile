@@ -114,9 +114,7 @@ const ProfileScreen = () => {
 
   const openTwit = (post) => {
     navigation.navigate("TwitScreen", {
-      twit: post,
-      username: username,
-      photo: photo,
+      twitId: post.post_id,
     });
   };
 
@@ -130,11 +128,11 @@ const ProfileScreen = () => {
     setIsEditableLoading(true);
     try {
       const profileData = await EditMyProfileHandler(
-        newUsername !== username ? newUsername : undefined, // Solo se envía si es diferente
+        newUsername !== username ? newUsername : undefined,
         undefined,
-        newCountry !== country ? newCountry : undefined, // Solo se envía si es diferente
-        newBio !== bio ? newBio : undefined, // Asumiendo que tienes originalBio
-        editingPhoto ? newPhoto : undefined, // Solo se envía si es diferente
+        newCountry !== country ? newCountry : undefined,
+        newBio !== bio ? newBio : undefined,
+        editingPhoto ? newPhoto : undefined,
       );
       setLoggedInUser(profileData);
 
@@ -290,7 +288,7 @@ const ProfileScreen = () => {
         )}
 
         <View style={styles.postsContainer}>
-          <Text style={styles.twitsHeader}>Twits</Text>
+          <Text style={styles.twitsHeader}></Text>
           {twitsLoading ? (
             <ActivityIndicator
               size="large"
@@ -303,7 +301,7 @@ const ProfileScreen = () => {
                 key={post.post_id}
                 onPress={() => openTwit(post)}
               >
-                <Twit post={post} username={username} photo={photo} />
+                <Twit post={post} />
               </TouchableOpacity>
             ))
           ) : (
@@ -338,7 +336,7 @@ const ProfileScreen = () => {
         </Card>
 
         <View style={styles.postsContainer}>
-          <Text style={styles.twitsHeader}>Twits</Text>
+          <Text style={styles.twitsHeader}></Text>
           {twitsLoading ? (
             <ActivityIndicator
               size="large"
@@ -351,7 +349,7 @@ const ProfileScreen = () => {
                 key={post.post_id}
                 onPress={() => openTwit(post)}
               >
-                <Twit post={post} username={username} photo={photo} />
+                <Twit post={post} />
               </TouchableOpacity>
             ))
           ) : (

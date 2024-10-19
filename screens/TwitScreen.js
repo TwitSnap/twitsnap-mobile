@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { Button } from "react-native-paper";
 import Twit from "../components/Twit";
 import Comment from "../components/Comment";
@@ -7,22 +14,29 @@ import GetPostWithCommentsHandler from "../handlers/GetPostWithCommentsHandler";
 import CommentPostHandler from "../handlers/CommentPostHandler";
 
 const TwitScreen = ({ route }) => {
-  const { twit, username, photo } = route.params;
+  const { twitId } = route.params;
+  const [twit, setTwit] = useState(null);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchPostWithComments = async () => {
+    console.log(twitId);
     try {
-      const postData = await GetPostWithCommentsHandler(twit.post_id);
+      setLoading(true);
+      const postData = await GetPostWithCommentsHandler(twitId);
+      setTwit(postData);
+      console.log(postData);
       setComments(postData.comments || []);
     } catch (error) {
       console.log("Error loading comments: ", error);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchPostWithComments();
-  }, [twit.post_id]);
+  }, [twitId]);
 
   const handleCommentSubmit = async () => {
     if (comment) {
@@ -36,12 +50,22 @@ const TwitScreen = ({ route }) => {
     }
   };
 
+  if (loading) {
+    // Mostrar un indicador de carga mientras se espera el fetch
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E88E5" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Twit post={twit} username={username} photo={photo} />
+      <Twit post={twit} />
 
       <View style={styles.inputContainer}>
         <TextInput
+          mode="contained"
           style={styles.input}
           placeholder="Write a comment"
           value={comment}
@@ -59,7 +83,7 @@ const TwitScreen = ({ route }) => {
       <FlatList
         data={comments}
         keyExtractor={(item) => item.comment_id}
-        renderItem={({ item }) => <Comment comment={item} />}
+        renderItem={({ item }) => <Twit post={item} />}
       />
     </View>
   );
@@ -68,8 +92,8 @@ const TwitScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#FFF",
+    padding: 18,
+    backgroundColor: "#E3F2FD",
   },
   inputContainer: {
     flexDirection: "row",
@@ -83,6 +107,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginRight: 8,
+    backgroundColor: "#FFFFFF",
   },
   comment: {
     padding: 10,
@@ -102,7 +127,12 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#1E88E5",
     borderRadius: 12,
-    padding: 10,
+    padding: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
