@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "twitsnap",
     "name": "twitsnap-mobile",
     "slug": "twitsnap-mobile",
     "version": "1.0.0",
@@ -23,6 +24,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "09462a02-bc33-4b23-9b83-8d07ecec6512"
+      }
     }
   }
 }

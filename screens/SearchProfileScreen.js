@@ -37,9 +37,6 @@ const SearchProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text variant="headlineLarge" style={styles.title}>
-        Search
-      </Text>
       <TextInput
         label="Enter username"
         value={searchText}

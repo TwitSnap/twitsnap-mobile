@@ -6,7 +6,7 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const GetUserPostsHandler = async (userId, offset = 0, limit = 10) => {
+const GetPostHandler = async (postId, offset = 0, limit = 10) => {
   let retries = 0;
   const maxRetries = RETRIES;
 
@@ -23,15 +23,15 @@ const GetUserPostsHandler = async (userId, offset = 0, limit = 10) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(
-         `${GATEWAY_URL}/v1/twit/posts/user?user_id=${userId}&offset=${offset}&limit=${limit}`,
-        {
-          method: "GET",
-          headers: authHeaders,
-        },
-      );
+      const response = await fetch(`${GATEWAY_URL}/v1/twit/post?id=${postId}&offset=${offset}&limit=${limit}`, {
+        method: "GET",
+        headers: authHeaders,
+      });
+
+      console.log(response);
       const responseJson = await response.json();
       console.log(responseJson);
+
       if (response.status === 200) {
         return responseJson;
       } else {
@@ -41,7 +41,7 @@ const GetUserPostsHandler = async (userId, offset = 0, limit = 10) => {
         retries++;
       }
     } catch (error) {
-      console.log("Error fetching user posts: ", error);
+      console.log("Error fetching post with comments: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
       retries++;
 
@@ -52,4 +52,4 @@ const GetUserPostsHandler = async (userId, offset = 0, limit = 10) => {
   }
 };
 
-export default GetUserPostsHandler;
+export default GetPostHandler;

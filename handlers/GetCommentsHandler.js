@@ -6,7 +6,7 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const GetPostWithCommentsHandler = async (postId) => {
+const GetCommentsHandler = async (postId, offset = 0, limit = 20) => {
   let retries = 0;
   const maxRetries = RETRIES;
 
@@ -23,7 +23,7 @@ const GetPostWithCommentsHandler = async (postId) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(`${GATEWAY_URL}/v1/twit/post?id=${postId}`, {
+       const response = await fetch(`${GATEWAY_URL}/v1/twit/post/comments?post_id=${postId}&offset=${offset}&limit=${limit}`, {
         method: "GET",
         headers: authHeaders,
       });
@@ -50,4 +50,4 @@ const GetPostWithCommentsHandler = async (postId) => {
   }
 };
 
-export default GetPostWithCommentsHandler;
+export default GetCommentsHandler;

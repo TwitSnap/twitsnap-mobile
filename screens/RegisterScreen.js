@@ -31,6 +31,7 @@ const RegisterScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [usernameError, setUsernameError] = useState(false);
   const [emailError, setEmailError] = useState(false);
+  const [emailFormatError, setEmailFormatError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [passwordLengthError, setPasswordLengthError] = useState(false);
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
@@ -40,9 +41,15 @@ const RegisterScreen = () => {
     setShowPassword(!showPassword);
   };
 
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleRegister = async () => {
     setUsernameError(username === "");
     setEmailError(email === "");
+    setEmailFormatError(!isValidEmail(email));
     setPasswordError(password === "");
     setPasswordLengthError(password.length < 8);
     setConfirmPasswordError(password !== confirmPassword);
@@ -50,6 +57,7 @@ const RegisterScreen = () => {
     if (
       !username ||
       !email ||
+      !isValidEmail(email) ||
       !password ||
       password !== confirmPassword ||
       password.length < 8
@@ -116,7 +124,7 @@ const RegisterScreen = () => {
               onChangeText={setEmail}
               error={emailError}
             />
-            <HelperText type="error" visible={emailError}>
+            <HelperText type="error" visible={emailError && emailFormatError}>
               Email is required
             </HelperText>
             <Divider style={styles.divider} />
@@ -150,16 +158,28 @@ const RegisterScreen = () => {
             </HelperText>
 
             <Divider style={styles.divider} />
-            <TextInput
-              style={styles.input}
-              theme={{ colors: { primary: "#1E88E5" } }}
-              autoCapitalize={"none"}
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              error={passwordError}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.input}
+                theme={{ colors: { primary: "#1E88E5" } }}
+                autoCapitalize={"none"}
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                error={passwordError}
+              />
+              <TouchableOpacity
+                onPress={togglePasswordVisibility}
+                style={styles.eyeIcon}
+              >
+                <Icon
+                  name={showPassword ? "visibility-off" : "visibility"}
+                  size={25}
+                  color="#1E88E5"
+                />
+              </TouchableOpacity>
+            </View>
             <HelperText type="error" visible={passwordError}>
               Password is required
             </HelperText>
@@ -167,28 +187,31 @@ const RegisterScreen = () => {
               Password must be at least 8 characters
             </HelperText>
             <Divider style={styles.divider} />
-            <TextInput
-              style={styles.input}
-              theme={{ colors: { primary: "#1E88E5" } }}
-              autoCapitalize={"none"}
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
-              error={confirmPasswordError}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.input}
+                theme={{ colors: { primary: "#1E88E5" } }}
+                autoCapitalize={"none"}
+                label="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showPassword}
+                error={confirmPasswordError}
+              />
+              <TouchableOpacity
+                onPress={togglePasswordVisibility}
+                style={styles.eyeIcon}
+              >
+                <Icon
+                  name={showPassword ? "visibility-off" : "visibility"}
+                  size={25}
+                  color="#1E88E5"
+                />
+              </TouchableOpacity>
+            </View>
             <HelperText type="error" visible={confirmPasswordError}>
               Passwords do not match
             </HelperText>
-            <TouchableOpacity
-              onPress={togglePasswordVisibility}
-              style={{ marginRight: 20 }}
-            >
-              <Icon
-                name={showPassword ? "visibility-off" : "visibility"}
-                size={25}
-              />
-            </TouchableOpacity>
             <Divider style={styles.divider} />
             <CustomButton
               title="Register"
@@ -236,9 +259,10 @@ const styles = StyleSheet.create({
     padding: 18,
     borderBottomWidth: 0.2,
   },
-  button: {
-    marginTop: 16,
-    backgroundColor: "#1E88E5",
+  eyeIcon: {
+    position: "absolute",
+    right: 10,
+    top: 15,
   },
   divider: {
     marginVertical: 8,

@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+SafeAreaView,
 } from "react-native";
 import { Text, Card, Button, HelperText, Avatar } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
@@ -14,12 +15,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRoute } from "@react-navigation/native";
 import { useUser } from "../contexts/UserContext";
 import * as ImagePicker from "expo-image-picker";
-import fetchUser from "../functions/fetchUser";
 import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
 import CustomButton from "../components/CustomButton";
 import Twit from "../components/Twit";
+import MyFeed from "../components/MyFeed";
 import CountryPicker, { Flag } from "react-native-country-picker-modal";
 
 const ProfileScreen = () => {
@@ -60,8 +61,8 @@ const ProfileScreen = () => {
           setCountry(loggedInUser.country);
           setNewCountry(loggedInUser.country);
           setLoading(false);
-          const userPosts = await GetUserPostsHandler(loggedInUser.uid);
-          setPosts(userPosts.posts);
+          //const userPosts = await GetUserPostsHandler(loggedInUser.uid);
+          //setPosts(userPosts.posts);
           setTwitsLoading(false);
         } catch (error) {
           console.error("Failed to load authenticated user profile", error);
@@ -287,27 +288,9 @@ const ProfileScreen = () => {
           />
         )}
 
-        <View style={styles.postsContainer}>
-          <Text style={styles.twitsHeader}></Text>
-          {twitsLoading ? (
-            <ActivityIndicator
-              size="large"
-              color="#1E88E5"
-              style={{ flex: 1 }}
-            />
-          ) : posts.length > 0 ? (
-            posts.map((post) => (
-              <TouchableOpacity
-                key={post.post_id}
-                onPress={() => openTwit(post)}
-              >
-                <Twit post={post} />
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.noPostsText}>No twits available</Text>
-          )}
-        </View>
+         <SafeAreaView style={{ flex: 1 }}>
+          <MyFeed userId={loggedInUser.uid} />
+        </SafeAreaView>
       </ScrollView>
     );
   } else {
@@ -335,27 +318,9 @@ const ProfileScreen = () => {
           </Card.Content>
         </Card>
 
-        <View style={styles.postsContainer}>
-          <Text style={styles.twitsHeader}></Text>
-          {twitsLoading ? (
-            <ActivityIndicator
-              size="large"
-              color="#1E88E5"
-              style={{ flex: 1 }}
-            />
-          ) : posts.length > 0 ? (
-            posts.map((post) => (
-              <TouchableOpacity
-                key={post.post_id}
-                onPress={() => openTwit(post)}
-              >
-                <Twit post={post} />
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.noPostsText}>No twits available</Text>
-          )}
-        </View>
+        <SafeAreaView style={{ flex: 1 }}>
+          <MyFeed userId={userId} />
+        </SafeAreaView>
       </ScrollView>
     );
   }

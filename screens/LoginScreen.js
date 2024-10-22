@@ -23,8 +23,11 @@ import * as WebBrowser from "expo-web-browser";
 import { useUser } from "../contexts/UserContext";
 import CustomButton from "../components/CustomButton";
 import LoginHandler from "../handlers/LoginHandler";
+import GoogleLoginHandler from "../handlers/GoogleLoginHandler";
 import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
 import { auth } from "../firebaseConfig";
+import * as Linking from "expo-linking";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -40,9 +43,7 @@ const LoginScreen = () => {
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId:
-      "450665613455-ui2sreo4d8uf4m4jjqqqskbqpb6q3sr3.apps.googleusercontent.com",
-    redirectUri: "https://twitsnap-57128.firebaseapp.com/__/auth/handler",
-    scopes: ["profile", "email"],
+      "450665613455-2rldm4tb9moq4o4if0g78jjf75rckamg.apps.googleusercontent.com",
   });
 
   useEffect(() => {
@@ -69,33 +70,26 @@ const LoginScreen = () => {
 
   const handleGoogleLogin = async (idToken) => {
     try {
-      const credential = GoogleAuthProvider.credential(idToken);
+    const credential = GoogleAuthProvider.credential(idToken);
+    const firebaseUser = await signInWithCredential(auth, credential);
+    const token = await firebaseUser.user.getIdToken();
 
-      const firebaseUser = await signInWithCredential(auth, credential);
-
-      const token = await firebaseUser.user.getIdToken();
-      const res = await fetch(`${GATEWAY_URL}/api/v1/register/google`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
+    Alert.alert("toekn", token);
+    const result = await GoogleLoginHandler(token);
+    
+    if (result === 0) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "WelcomeScreen" }],
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "WelcomeScreen" }],
-        });
-      } else {
-        Alert.alert("Google Login failed", "Please try again.");
-      }
-    } catch (error) {
-      console.error("Error during Google login:", error);
-      Alert.alert("Error", error.message);
+    } else {
+      Alert.alert("Google Login failed", result);
     }
+  } catch (error) {
+    console.error("Error during Google login:", error);
+    //Alert.alert("Error", error.message);
+  }
+   
   };
 
   const handleLogin = async () => {
@@ -149,6 +143,14 @@ const LoginScreen = () => {
   //<ActivityIndicator size="large" color="#0000ff" />
   //</View>);
 
+  const simulateDeepLink = () => {
+    //Linking.openURL('twitsnap://reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwY2Q4OWM3NGYyNmY0NDIxYjExMWI3Y2QzNDIxMzNlNiIsImlhdCI6MTcyOTQ3NzUzMSwiZXhwIjoxNzI5NDgxMTMxfQ.iKC7zohrY5MpeVHPHFcLVax-tcahjt7w_APF0d9VVuI');
+    navigation.navigate("ResetPasswordScreen", {
+      token:
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwY2Q4OWM3NGYyNmY0NDIxYjExMWI3Y2QzNDIxMzNlNiIsImlhdCI6MTcyOTQ3NDcxOCwiZXhwIjoxNzI5NDc4MzE4fQ.95s1iCnCi3VmtSSD3c4JqP16OPyxCyFf12sxVD-RqaQ",
+    });
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Image source={require("../assets/logo.png")} style={styles.image} />
@@ -156,6 +158,7 @@ const LoginScreen = () => {
       <Paragraph style={styles.subtitle}>
         Please enter your credentials
       </Paragraph>
+      <Button title="Simulate Deep Link" onPress={simulateDeepLink} />
       <Card style={styles.card}>
         <Card.Content>
           <TextInput

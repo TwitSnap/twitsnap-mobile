@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 import LikePostHandler from "../handlers/LikePostHandler";
@@ -20,9 +20,7 @@ const formatTimestamp = (timestamp) => {
 
 const Twit = ({ post }) => {
   const navigation = useNavigation();
-  const [username, setUsername] = useState("");
-  const [photo, setPhoto] = useState("about:blank");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [likeAmount, setLikeAmount] = useState(post.like_ammount);
   const [retwitAmount, setRetwitAmount] = useState(post.retweet_ammount);
 
@@ -30,28 +28,12 @@ const Twit = ({ post }) => {
     return null;
   }
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        console.log(post);
-        const profile = await GetProfileHandler(post.created_by);
-        setUsername(profile.username);
-        setPhoto(profile.photo);
-      } catch (error) {
-        console.log("Error fetching user profile:", error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [post.created_by]);
-
   const handleLike = async () => {
     try {
       const response = await LikePostHandler(post.post_id);
       if (response == true) {
         setLikeAmount(likeAmount + 1);
+        post.like_ammount++;
       }
     } catch (error) {
       console.log("Error liking the post:", error.message);
@@ -63,11 +45,33 @@ const Twit = ({ post }) => {
       const response = await RetwitPostHandler(post.post_id);
       if (response == true) {
         setRetwitAmount(retwitAmount + 1);
+        post.retweet_ammount++;
       }
     } catch (error) {
       console.log("Error liking the post:", error.message);
     }
   };
+
+  const handleOpenTwit = () => {
+    navigation.navigate({ name: "TwitScreen", 
+     key: post.post_id,
+     params: {
+      twitId: post.post_id,
+      initialTwit: post,
+    }});
+  };
+
+  const handleCommentPress = () => {
+  if (post.is_comment && post.origin_post) {
+    navigation.navigate({
+      name: "TwitScreen",
+      key: post.origin_post, 
+      params: {
+        twitId: post.origin_post,
+      },
+    });
+  }
+};
 
   const handleProfilePress = () => {
     navigation.navigate({
@@ -81,44 +85,52 @@ const Twit = ({ post }) => {
     });
   };
 
-  const handleCommentPress = () => {
-    if (post.is_comment && post.origin_post) {
-      navigation.navigate("TwitScreen", { twitId: post.origin_post });
-    }
-  };
 
   const time = formatTimestamp(post.created_at);
 
+ if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.post}>
-      {post.is_retweet && <Text style={styles.retweetedText}>Retwited🔁</Text>}
-      {post.is_comment && (
-        <TouchableOpacity onPress={handleCommentPress}>
-          <Text style={styles.commentInfo}>Comment to another post 📩</Text>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity onPress={handleProfilePress}>
+      <TouchableOpacity onPress={handleOpenTwit}>
+        {post.is_retweet && (
+          <Text style={styles.retweetedText}>Retwited🔁</Text>
+        )}
+        {post.is_comment && (
+          <TouchableOpacity onPress={handleCommentPress}>
+            <Text style={styles.commentInfo}>Comment to another post 📩</Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.header}>
-          <Image
-            source={{ uri: `${photo}?timestamp=${new Date().getTime()}` }}
-            style={styles.avatar}
-          />
+          <TouchableOpacity onPress={handleProfilePress}>
+            <Image
+              source={{ uri: `${post.photo_creator}?timestamp=${new Date().getTime()}` }}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
           <View style={styles.userInfo}>
-            <Text style={styles.username}>{username}</Text>
+            <Text style={styles.username}>{post.username_creator}</Text>
             <Text style={styles.timestamp}>{time}</Text>
           </View>
         </View>
+
+        <Text style={styles.postContent}>{post.message}</Text>
+        <View style={styles.commentContainer}>
+          <TouchableOpacity onPress={handleLike}>
+            <Text style={styles.comment}>{likeAmount}♥</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleRetwit}>
+            <Text style={styles.comment}>{retwitAmount}🔁</Text>
+          </TouchableOpacity>
+          <Text style={styles.comment}>{post.comment_ammount}📩</Text>
+        </View>
       </TouchableOpacity>
-      <Text style={styles.postContent}>{post.message}</Text>
-      <View style={styles.commentContainer}>
-        <TouchableOpacity onPress={handleLike}>
-          <Text style={styles.comment}>{likeAmount}♥</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleRetwit}>
-          <Text style={styles.comment}>{retwitAmount}🔁</Text>
-        </TouchableOpacity>
-        <Text style={styles.comment}>{post.comment_ammount}📩</Text>
-      </View>
     </View>
   );
 };

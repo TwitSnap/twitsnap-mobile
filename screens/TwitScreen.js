@@ -9,41 +9,51 @@ import {
 } from "react-native";
 import { Button } from "react-native-paper";
 import Twit from "../components/Twit";
-import Comment from "../components/Comment";
-import GetPostWithCommentsHandler from "../handlers/GetPostWithCommentsHandler";
+import Comments from "../components/Comments";
+import GetPostHandler from "../handlers/GetPostHandler";
 import CommentPostHandler from "../handlers/CommentPostHandler";
 
 const TwitScreen = ({ route }) => {
-  const { twitId } = route.params;
-  const [twit, setTwit] = useState(null);
+  const {twitId, initialTwit } = route.params;
+  const [twit, setTwit] = useState(initialTwit || null);
   const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updateComments, setUpdateComments] = useState(false);
 
-  const fetchPostWithComments = async () => {
-    console.log(twitId);
+  const fetchPost = async () => {
     try {
       setLoading(true);
-      const postData = await GetPostWithCommentsHandler(twitId);
+      const postData = await GetPostHandler(twitId);
       setTwit(postData);
-      console.log(postData);
-      setComments(postData.comments || []);
     } catch (error) {
-      console.log("Error loading comments: ", error);
+      console.log("Error loading post: ", error);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchPostWithComments();
-  }, [twitId]);
+  const fetchPostData = async () => {
+    if (twit == null) {
+      await fetchPost(); 
+    }
+  };
+
+  fetchPostData();
+}, [twitId]); 
+
+useEffect(() => {
+    if (twit) { 
+      setLoading(false);
+    }
+}, [twit]); 
 
   const handleCommentSubmit = async () => {
     if (comment) {
       try {
         await CommentPostHandler(comment, twit.post_id);
-        await fetchPostWithComments();
-        setComment("");
+        setComment(""); // Limpiar el campo de comentario después de enviar
+        setUpdateComments((prev) => !prev);
+        twit.comment_ammount++;
       } catch (error) {
         console.error("Error al enviar el comentario: ", error.message);
       }
@@ -51,7 +61,6 @@ const TwitScreen = ({ route }) => {
   };
 
   if (loading) {
-    // Mostrar un indicador de carga mientras se espera el fetch
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#1E88E5" />
@@ -80,11 +89,7 @@ const TwitScreen = ({ route }) => {
         </Button>
       </View>
 
-      <FlatList
-        data={comments}
-        keyExtractor={(item) => item.comment_id}
-        renderItem={({ item }) => <Twit post={item} />}
-      />
+      <Comments post={twit}  update={updateComments}/>
     </View>
   );
 };
@@ -133,6 +138,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+   noCommentsText: {
+    textAlign: "center",
+    color: "#999",
+    marginTop: 40,
   },
 });
 

@@ -11,23 +11,40 @@ import {
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
+import RecoverPasswordHandler from "../handlers/RecoverPasswordHandler";
 
 const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
 
-  const handleResetPassword = () => {
-    if (!email) {
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleResetPassword = async () => {
+    if (!email || !isValidEmail(email)) {
       setEmailError(true);
     } else {
       setEmailError(false);
-      // Aquí iría la lógica para enviar el correo de recuperación
-      Alert.alert(
-        "Success",
-        "Check your email for instructions to reset your password.",
-      );
-      navigation.navigate("LoginScreen");
+      try {
+        const result = await RecoverPasswordHandler(email);
+        if (result === "Recovery email sent. Please check your inbox.") {
+          Alert.alert("Success", result);
+          navigation.navigate("LoginScreen");
+        } else {
+          Alert.alert(
+            "Error",
+            result.message || "An unexpected error occurred.",
+          );
+        }
+      } catch (error) {
+        Alert.alert(
+          "Error",
+          error.message || "Failed to send recovery instructions.",
+        );
+      }
     }
   };
 
