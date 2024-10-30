@@ -42,7 +42,7 @@ const WelcomeScreen = () => {
 
   const handleViewProfile = async () => {
     try {
-      navigation.navigate("ProfileScreen", { allowEdit: true });
+      navigation.navigate("ProfileScreen");
     } catch (error) {
       console.error("Error fetching profile data:", error);
     }
@@ -66,7 +66,7 @@ const WelcomeScreen = () => {
   };
 
   const handleRefreshFeed = () => {
-    setRefreshKey((prevKey) => prevKey + 1); // Cambiar refreshKey para refrescar el feed
+    setRefreshKey((prevKey) => prevKey + 1); 
   };
 
   return (

@@ -7,7 +7,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const initUserContext = async () => {
       const noUser = {
-        id: "",
+        uid: "",
         username: "unknown",
         bio: "",
         photo: "about:blank",

@@ -20,15 +20,17 @@ import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
 import CustomButton from "../components/CustomButton";
 import MyFeed from "../components/MyFeed";
+import FollowButton from '../components/FollowButton';
 import CountryPicker, { Flag } from "react-native-country-picker-modal";
 import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const { userId, allowEdit } = useRoute().params || {};
   const { loggedInUser, setLoggedInUser } = useUser();
+  const { userId } = useRoute().params || {};
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+  const [allowEdit, setAllowEdit] = useState(false);
   const [photo, setPhoto] = useState("about:blank");
   const [country, setCountry] = useState("");
   const [editing, setEditing] = useState(false);
@@ -39,13 +41,15 @@ const ProfileScreen = () => {
   const [usernameError, setUsernameError] = useState(false);
   const [newCountry, setNewCountry] = useState(country);
   const [newBio, setNewBio] = useState(bio);
+  const [followed, setFollowed] = useState(false);
   const [isEditableLoading, setIsEditableLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (allowEdit) {
+      if (!userId || userId == loggedInUser.uid) {
         try {
+          setAllowEdit(true);
           setUsername(loggedInUser.username);
           setNewUsername(loggedInUser.username);
           setBio(loggedInUser.description);
@@ -71,6 +75,7 @@ const ProfileScreen = () => {
             setNewUsername(data.username);
             setBio(data.description);
             setNewBio(data.description);
+            setFollowed(data.is_followed_by_me);
             setPhoto(
               `${data.photo}?timestamp=${new Date().getTime()}` ||
                 "about:blank",
@@ -311,6 +316,8 @@ const ProfileScreen = () => {
             <Text>{bio || "No bio specified"}</Text>
           </Card.Content>
         </Card>
+
+        <FollowButton profileId={userId} isFollowing={followed} />
 
         <SafeAreaView style={{ flex: 1 }}>
           <MyFeed userId={userId} />

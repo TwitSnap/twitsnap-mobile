@@ -88,7 +88,6 @@ const Twit = ({ post }) => {
       key: post.created_by,
       params: {
         userId: post.created_by,
-        allowEdit: false,
         key: post.created_by,
       },
     });
