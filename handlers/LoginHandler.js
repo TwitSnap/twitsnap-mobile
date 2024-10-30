@@ -21,6 +21,7 @@ const LoginHandler = async (email, password) => {
         headers: headers,
         body: JSON.stringify(requestBody),
       });
+
       const responseJson = await response.json();
       console.log(responseJson);
 

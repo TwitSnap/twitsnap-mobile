@@ -70,26 +70,26 @@ const LoginScreen = () => {
 
   const handleGoogleLogin = async (idToken) => {
     try {
-    const credential = GoogleAuthProvider.credential(idToken);
-    const firebaseUser = await signInWithCredential(auth, credential);
-    const token = await firebaseUser.user.getIdToken();
+      const credential = GoogleAuthProvider.credential(idToken);
+      const firebaseUser = await signInWithCredential(auth, credential);
+      const token = await firebaseUser.user.getIdToken();
 
-    Alert.alert("toekn", token);
-    const result = await GoogleLoginHandler(token);
-    
-    if (result === 0) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "WelcomeScreen" }],
-      });
-    } else {
-      Alert.alert("Google Login failed", result);
+      //Alert.alert("token", token);
+
+      const result = await GoogleLoginHandler(token);
+
+      if (result === 0) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "WelcomeScreen" }],
+        });
+      } else {
+        Alert.alert("Google Login failed", result);
+      }
+    } catch (error) {
+      console.error("Error during Google login:", error);
+      //Alert.alert("Error", error.message);
     }
-  } catch (error) {
-    console.error("Error during Google login:", error);
-    //Alert.alert("Error", error.message);
-  }
-   
   };
 
   const handleLogin = async () => {

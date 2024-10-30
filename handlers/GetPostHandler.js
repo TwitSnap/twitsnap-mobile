@@ -23,10 +23,13 @@ const GetPostHandler = async (postId, offset = 0, limit = 10) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(`${GATEWAY_URL}/v1/twit/post?id=${postId}&offset=${offset}&limit=${limit}`, {
-        method: "GET",
-        headers: authHeaders,
-      });
+      const response = await fetch(
+        `${GATEWAY_URL}/v1/twit/post?id=${postId}&offset=${offset}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        },
+      );
 
       console.log(response);
       const responseJson = await response.json();

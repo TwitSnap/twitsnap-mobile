@@ -7,29 +7,29 @@ import {
   TouchableOpacity,
 } from "react-native";
 import Twit from "./Twit"; // Asegúrate de tener el componente Twit importado
-import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
+import GetFeedHandler from "../handlers/GetFeedHandler"; // Importar el handler
 
-const MyFeed = ({ userId }) => {
+const Feed = ({ userId }) => {
   const [posts, setPosts] = useState([]);
-  const [twitsLoading, setTwitsLoading] = useState(false);
+  const [feedLoading, setFeedLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [limit] = useState(5);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const loadPosts = async () => {
-    if (twitsLoading) return;
+    if (feedLoading) return;
 
-    setTwitsLoading(true);
+    setFeedLoading(true);
     try {
-      const userPosts = await GetUserPostsHandler(userId, offset, limit);
-      setPosts(userPosts.posts);
-      setHasMore(userPosts.posts.length === limit);
-      setOffset(limit);
+      const userFeed = await GetFeedHandler(offset, limit); // Llamar al handler
+      setPosts(userFeed.posts || []); // Guardar los posts del feed
+      setHasMore(userFeed.posts.length === limit); // Verificar si hay más posts
+      setOffset((prevOffset) => prevOffset + limit); // Actualizar el offset
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
-      setTwitsLoading(false);
+      setFeedLoading(false);
     }
   };
 
@@ -38,10 +38,10 @@ const MyFeed = ({ userId }) => {
 
     setIsLoadingMore(true);
     try {
-      const userPosts = await GetUserPostsHandler(userId, offset, limit);
-      setPosts((prevPosts) => [...prevPosts, ...userPosts.posts]);
-      setHasMore(userPosts.posts.length === limit);
-      setOffset((prevOffset) => prevOffset + limit);
+      const userFeed = await GetFeedHandler(userId, offset, limit); // Llamar al handler para cargar más
+      setPosts((prevPosts) => [...prevPosts, ...userFeed.posts]); // Agregar los nuevos posts
+      setHasMore(userFeed.posts.length === limit); // Verificar si hay más posts
+      setOffset((prevOffset) => prevOffset + limit); // Actualizar el offset
     } catch (error) {
       console.error("Error fetching more posts:", error);
     } finally {
@@ -50,13 +50,13 @@ const MyFeed = ({ userId }) => {
   };
 
   useEffect(() => {
-    loadPosts();
+    loadPosts(); // Cargar los posts al montar el componente
   }, [userId]);
 
   return (
-    <View style={styles.postsContainer}>
+    <View style={styles.feedContainer}>
       <ScrollView>
-        {twitsLoading && posts.length === 0 ? (
+        {feedLoading && posts.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#1E88E5" />
           </View>
@@ -65,7 +65,7 @@ const MyFeed = ({ userId }) => {
             {posts.length > 0 ? (
               posts.map((post) => <Twit key={post.post_id} post={post} />)
             ) : (
-              <Text style={styles.noPostsText}>No twits available</Text>
+              <Text style={styles.noPostsText}>No posts available</Text>
             )}
             {isLoadingMore && (
               <ActivityIndicator size="small" color="#1E88E5" />
@@ -83,14 +83,9 @@ const MyFeed = ({ userId }) => {
 };
 
 const styles = {
-  postsContainer: {
+  feedContainer: {
     flex: 1,
     padding: 16,
-  },
-  twitsHeader: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
   },
   noPostsText: {
     textAlign: "center",
@@ -110,4 +105,4 @@ const styles = {
   },
 };
 
-export default MyFeed;
+export default Feed;

@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 import LikePostHandler from "../handlers/LikePostHandler";
@@ -53,25 +60,27 @@ const Twit = ({ post }) => {
   };
 
   const handleOpenTwit = () => {
-    navigation.navigate({ name: "TwitScreen", 
-     key: post.post_id,
-     params: {
-      twitId: post.post_id,
-      initialTwit: post,
-    }});
+    navigation.navigate({
+      name: "TwitScreen",
+      key: post.post_id,
+      params: {
+        twitId: post.post_id,
+        initialTwit: post,
+      },
+    });
   };
 
   const handleCommentPress = () => {
-  if (post.is_comment && post.origin_post) {
-    navigation.navigate({
-      name: "TwitScreen",
-      key: post.origin_post, 
-      params: {
-        twitId: post.origin_post,
-      },
-    });
-  }
-};
+    if (post.is_comment && post.origin_post) {
+      navigation.navigate({
+        name: "TwitScreen",
+        key: post.origin_post,
+        params: {
+          twitId: post.origin_post,
+        },
+      });
+    }
+  };
 
   const handleProfilePress = () => {
     navigation.navigate({
@@ -85,10 +94,9 @@ const Twit = ({ post }) => {
     });
   };
 
-
   const time = formatTimestamp(post.created_at);
 
- if (loading) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -110,7 +118,9 @@ const Twit = ({ post }) => {
         <View style={styles.header}>
           <TouchableOpacity onPress={handleProfilePress}>
             <Image
-              source={{ uri: `${post.photo_creator}?timestamp=${new Date().getTime()}` }}
+              source={{
+                uri: `${post.photo_creator}?timestamp=${new Date().getTime()}`,
+              }}
               style={styles.avatar}
             />
           </TouchableOpacity>

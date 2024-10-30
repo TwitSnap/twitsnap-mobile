@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { Button } from "react-native-paper";
 import Twit from "../components/Twit";
 import Comments from "../components/Comments";
@@ -14,7 +15,8 @@ import GetPostHandler from "../handlers/GetPostHandler";
 import CommentPostHandler from "../handlers/CommentPostHandler";
 
 const TwitScreen = ({ route }) => {
-  const {twitId, initialTwit } = route.params;
+  const navigation = useNavigation();
+  const { twitId, initialTwit } = route.params;
   const [twit, setTwit] = useState(initialTwit || null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(true);
@@ -32,28 +34,27 @@ const TwitScreen = ({ route }) => {
   };
 
   useEffect(() => {
-  const fetchPostData = async () => {
-    if (twit == null) {
-      await fetchPost(); 
-    }
-  };
+    const fetchPostData = async () => {
+      if (twit == null) {
+        await fetchPost();
+      }
+    };
 
-  fetchPostData();
-}, [twitId]); 
+    fetchPostData();
+  }, [twitId]);
 
-useEffect(() => {
-    if (twit) { 
+  useEffect(() => {
+    if (twit) {
       setLoading(false);
     }
-}, [twit]); 
+  }, [twit]);
 
   const handleCommentSubmit = async () => {
     if (comment) {
       try {
         await CommentPostHandler(comment, twit.post_id);
-        setComment(""); // Limpiar el campo de comentario después de enviar
-        setUpdateComments((prev) => !prev);
-        twit.comment_ammount++;
+        setComment("");
+        navigation.replace("TwitScreen", { twitId, initialTwit: null });
       } catch (error) {
         console.error("Error al enviar el comentario: ", error.message);
       }
@@ -89,7 +90,7 @@ useEffect(() => {
         </Button>
       </View>
 
-      <Comments post={twit}  update={updateComments}/>
+      <Comments post={twit} />
     </View>
   );
 };
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-   noCommentsText: {
+  noCommentsText: {
     textAlign: "center",
     color: "#999",
     marginTop: 40,

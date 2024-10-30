@@ -1,26 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import Twit from "./Twit"; // Asegúrate de tener el componente Comment importado
 import GetCommentsHandler from "../handlers/GetCommentsHandler"; // Asegúrate de que esta función está implementada
 
-const Comments = ({ post, update }) => {
+const Comments = ({ post }) => {
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
   const [limit] = useState(5);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [postId, setPostId] = useState(post.is_retweet ? post.origin_post : post.post_id);
+  const [postId, setPostId] = useState(
+    post.is_retweet ? post.origin_post : post.post_id,
+  );
+
+  const calculateHasMore = (comments) => {
+    let total = 0;
+    if (totalComments == 0) {
+      total = post.comment_ammount;
+      comments.forEach((comment) => {
+        const commentCount = -comment.comment_ammount;
+        total += commentCount;
+      });
+      setTotalComments(total);
+    } else {
+      total = totalComments;
+    }
+    console.log(comments.length + offset);
+    console.log(total);
+    return comments.length + offset < total;
+  };
 
   const loadComments = async () => {
     if (commentsLoading) return;
 
     setCommentsLoading(true);
     try {
-      const fetchedComments = await GetCommentsHandler(postId , offset, limit);
+      const fetchedComments = await GetCommentsHandler(postId, offset, limit);
       setComments(fetchedComments || []);
-      setHasMore(fetchedComments.length === limit);
       setOffset(limit);
+      setHasMore(calculateHasMore(fetchedComments || []));
     } catch (error) {
       console.error("Error fetching comments:", error);
     } finally {
@@ -35,7 +61,7 @@ const Comments = ({ post, update }) => {
     try {
       const fetchedComments = await GetCommentsHandler(postId, offset, limit);
       setComments((prevComments) => [...prevComments, ...fetchedComments]);
-      setHasMore(fetchedComments.length === limit);
+      setHasMore(calculateHasMore(fetchedComments || []));
       setOffset((prevOffset) => prevOffset + limit);
     } catch (error) {
       console.error("Error fetching more comments:", error);
@@ -58,11 +84,15 @@ const Comments = ({ post, update }) => {
         ) : (
           <>
             {comments.length > 0 ? (
-              comments.map((comment) => <Twit key={comment.post_id} post={comment} />)
+              comments.map((comment) => (
+                <Twit key={comment.post_id} post={comment} />
+              ))
             ) : (
               <Text style={styles.noCommentsText}>No comments available</Text>
             )}
-            {isLoadingMore && (<ActivityIndicator size="small" color="#1E88E5" />)}
+            {isLoadingMore && (
+              <ActivityIndicator size="small" color="#1E88E5" />
+            )}
             {hasMore && !isLoadingMore && (
               <TouchableOpacity onPress={loadMoreComments}>
                 <Text style={styles.loadMoreText}>Load More</Text>
@@ -81,12 +111,12 @@ const styles = {
     padding: 16,
   },
   noCommentsText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
   },
   loadMoreText: {
-    textAlign: 'center',
-    color: '#1E88E5',
+    textAlign: "center",
+    color: "#1E88E5",
     marginVertical: 20,
     fontSize: 16,
   },

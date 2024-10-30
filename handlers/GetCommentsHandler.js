@@ -23,10 +23,13 @@ const GetCommentsHandler = async (postId, offset = 0, limit = 20) => {
         Authorization: `Bearer ${token}`,
       };
 
-       const response = await fetch(`${GATEWAY_URL}/v1/twit/post/comments?post_id=${postId}&offset=${offset}&limit=${limit}`, {
-        method: "GET",
-        headers: authHeaders,
-      });
+      const response = await fetch(
+        `${GATEWAY_URL}/v1/twit/post/comments?post_id=${postId}&offset=${offset}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        },
+      );
 
       const responseJson = await response.json();
       console.log(responseJson);

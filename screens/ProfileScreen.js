@@ -7,7 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
-SafeAreaView,
+  SafeAreaView,
 } from "react-native";
 import { Text, Card, Button, HelperText, Avatar } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
@@ -19,9 +19,9 @@ import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
 import CustomButton from "../components/CustomButton";
-import Twit from "../components/Twit";
 import MyFeed from "../components/MyFeed";
 import CountryPicker, { Flag } from "react-native-country-picker-modal";
+import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -34,14 +34,13 @@ const ProfileScreen = () => {
   const [editing, setEditing] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [twitsLoading, setTwitsLoading] = useState(true);
   const [newUsername, setNewUsername] = useState(username);
   const [newPhoto, setNewPhoto] = useState(photo);
   const [usernameError, setUsernameError] = useState(false);
   const [newCountry, setNewCountry] = useState(country);
   const [newBio, setNewBio] = useState(bio);
-  const [posts, setPosts] = useState([]);
   const [isEditableLoading, setIsEditableLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -61,9 +60,6 @@ const ProfileScreen = () => {
           setCountry(loggedInUser.country);
           setNewCountry(loggedInUser.country);
           setLoading(false);
-          //const userPosts = await GetUserPostsHandler(loggedInUser.uid);
-          //setPosts(userPosts.posts);
-          setTwitsLoading(false);
         } catch (error) {
           console.error("Failed to load authenticated user profile", error);
         }
@@ -85,9 +81,6 @@ const ProfileScreen = () => {
             setCountry(data.country);
             setNewCountry(data.country);
             setLoading(false);
-            const userPosts = await GetUserPostsHandler(userId);
-            setPosts(userPosts.posts);
-            setTwitsLoading(false);
           } else {
             return (
               <View style={styles.container}>
@@ -107,17 +100,18 @@ const ProfileScreen = () => {
     loadProfile();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      setRefreshKey((prevKey) => prevKey + 1);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   if (loading) {
     return (
       <ActivityIndicator size="large" color="#1E88E5" style={{ flex: 1 }} />
     );
   }
-
-  const openTwit = (post) => {
-    navigation.navigate("TwitScreen", {
-      twitId: post.post_id,
-    });
-  };
 
   const handleSave = async () => {
     if (newUsername.trim() === "") {
@@ -288,7 +282,7 @@ const ProfileScreen = () => {
           />
         )}
 
-         <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }} key={refreshKey}>
           <MyFeed userId={loggedInUser.uid} />
         </SafeAreaView>
       </ScrollView>

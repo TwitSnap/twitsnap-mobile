@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PostTwitHandler from "../handlers/PostTwitHandler";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
+import Feed from "../components/Feed";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
@@ -29,6 +30,7 @@ const WelcomeScreen = () => {
   const [tags, setTags] = useState("");
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleLogout = async () => {
     await AsyncStorage.clear();
@@ -61,6 +63,10 @@ const WelcomeScreen = () => {
     } catch (error) {
       console.error("Error posting twit:", error);
     }
+  };
+
+  const handleRefreshFeed = () => {
+    setRefreshKey((prevKey) => prevKey + 1); // Cambiar refreshKey para refrescar el feed
   };
 
   return (
@@ -96,8 +102,15 @@ const WelcomeScreen = () => {
       </Appbar.Header>
 
       <View style={styles.titleContainer}>
-        <Title style={styles.title}>Welcome</Title>
+        <IconButton
+          icon="refresh"
+          color="#0D47A1"
+          size={30}
+          onPress={handleRefreshFeed}
+        />
       </View>
+
+      <Feed key={refreshKey} userId={loggedInUser.user_id} />
 
       <FAB
         style={styles.fab}
@@ -189,7 +202,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fondo semitransparente
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
     width: "90%",
