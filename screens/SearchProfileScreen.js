@@ -32,7 +32,7 @@ const SearchProfileScreen = () => {
   };
 
   const handleSelectUser = (userId) => {
-    navigation.navigate("ProfileScreen", { userId: userId, allowEdit: false });
+    navigation.navigate("ProfileScreen", { userId: userId });
   };
 
   return (

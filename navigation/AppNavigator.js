@@ -9,6 +9,7 @@ import SearchProfileScreen from "../screens/SearchProfileScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import TwitScreen from "../screens/TwitScreen";
+import FollowScreen from "../screens/FollowScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,11 @@ const AppNavigator = () => {
       <Stack.Screen
         name={"ProfileScreen"}
         component={ProfileScreen}
+        options={{ headerShown: true, headerTitle: "" }}
+      />
+      <Stack.Screen
+        name={"FollowScreen"}
+        component={FollowScreen}
         options={{ headerShown: true, headerTitle: "" }}
       />
       <Stack.Screen

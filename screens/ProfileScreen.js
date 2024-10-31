@@ -20,9 +20,8 @@ import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
 import CustomButton from "../components/CustomButton";
 import MyFeed from "../components/MyFeed";
-import FollowButton from '../components/FollowButton';
+import FollowButton from "../components/FollowButton";
 import CountryPicker, { Flag } from "react-native-country-picker-modal";
-import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -42,6 +41,8 @@ const ProfileScreen = () => {
   const [newCountry, setNewCountry] = useState(country);
   const [newBio, setNewBio] = useState(bio);
   const [followed, setFollowed] = useState(false);
+  const [followers, setFollowers] = useState(0);
+  const [following, setFollowing] = useState(0);
   const [isEditableLoading, setIsEditableLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -63,6 +64,8 @@ const ProfileScreen = () => {
           }
           setCountry(loggedInUser.country);
           setNewCountry(loggedInUser.country);
+          setFollowers(loggedInUser.amount_of_followers);
+          setFollowing(loggedInUser.amount_of_following);
           setLoading(false);
         } catch (error) {
           console.error("Failed to load authenticated user profile", error);
@@ -85,6 +88,8 @@ const ProfileScreen = () => {
             }
             setCountry(data.country);
             setNewCountry(data.country);
+            setFollowers(data.amount_of_followers);
+            setFollowing(data.amount_of_following);
             setLoading(false);
           } else {
             return (
@@ -226,6 +231,14 @@ const ProfileScreen = () => {
           )}
         </TouchableOpacity>
 
+        <FollowButton
+          profileId={loggedInUser.uid}
+          isFollowing={followed}
+          followersCount={followers}
+          followingCount={following}
+          isMyProfile={true}
+        />
+
         <Card style={styles.card}>
           <Card.Title title="Bio" />
           <Card.Content>
@@ -310,14 +323,19 @@ const ProfileScreen = () => {
           </View>
         </TouchableOpacity>
 
+        <FollowButton
+          profileId={userId}
+          isFollowing={followed}
+          followersCount={followers}
+          followingCount={following}
+        />
+
         <Card style={styles.card}>
           <Card.Title title="Bio" />
           <Card.Content>
             <Text>{bio || "No bio specified"}</Text>
           </Card.Content>
         </Card>
-
-        <FollowButton profileId={userId} isFollowing={followed} />
 
         <SafeAreaView style={{ flex: 1 }}>
           <MyFeed userId={userId} />

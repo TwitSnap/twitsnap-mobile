@@ -6,7 +6,12 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const UnfollowUserHandler = async (userId) => {
+const GetFollowingHandler = async (
+  userId,
+  offset = 0,
+  limit = 10,
+  userIdHeader,
+) => {
   let retries = 0;
   const maxRetries = RETRIES;
 
@@ -21,26 +26,23 @@ const UnfollowUserHandler = async (userId) => {
       const authHeaders = {
         ...headers,
         Authorization: `Bearer ${token}`,
-        user_id: userId,
+        user_id: userIdHeader,
       };
 
-      const requestBody = {
-        id: userId,
-      };
+      const response = await fetch(
+        `${GATEWAY_URL}/api/v1/users/${userId}/following?offset=${offset}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        },
+      );
 
-      const response = await fetch(`${GATEWAY_URL}/api/v1/users/me/following`, {
-        method: "DELETE",
-        headers: authHeaders,
-        body: JSON.stringify(requestBody),
-      });
-      console.log(response);
-      if (response.status === 204) {
-        return { success: true };
-      } else if (response.status === 422) {
-        const errorDetail = await response.json();
-        throw new Error(
-          "Validation error: " + JSON.stringify(errorDetail.detail),
-        );
+      const responseJson = await response.json();
+
+      if (response.status === 200) {
+        return responseJson;
+      } else if (response.status === 409) {
+        return responseJson;
       } else {
         console.log(
           `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
@@ -48,7 +50,7 @@ const UnfollowUserHandler = async (userId) => {
         retries++;
       }
     } catch (error) {
-      console.log("Error unfollowing user: ", error);
+      console.log("Error fetching following: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
       retries++;
 
@@ -59,4 +61,4 @@ const UnfollowUserHandler = async (userId) => {
   }
 };
 
-export default UnfollowUserHandler;
+export default GetFollowingHandler;

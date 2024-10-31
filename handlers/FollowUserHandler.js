@@ -21,11 +21,11 @@ const FollowUserHandler = async (userId) => {
       const authHeaders = {
         ...headers,
         Authorization: `Bearer ${token}`,
-        user_id: userId, 
+        user_id: userId,
       };
 
       const requestBody = {
-        id: userId, 
+        id: userId,
       };
 
       const response = await fetch(`${GATEWAY_URL}/api/v1/users/me/following`, {
@@ -38,10 +38,12 @@ const FollowUserHandler = async (userId) => {
         return { success: true };
       } else if (response.status === 422) {
         const errorDetail = await response.json();
-        throw new Error("Validation error: " + JSON.stringify(errorDetail.detail));
+        throw new Error(
+          "Validation error: " + JSON.stringify(errorDetail.detail),
+        );
       } else {
         console.log(
-          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
         );
         retries++;
       }

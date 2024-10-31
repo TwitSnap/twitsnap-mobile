@@ -66,7 +66,7 @@ const WelcomeScreen = () => {
   };
 
   const handleRefreshFeed = () => {
-    setRefreshKey((prevKey) => prevKey + 1); 
+    setRefreshKey((prevKey) => prevKey + 1);
   };
 
   return (
