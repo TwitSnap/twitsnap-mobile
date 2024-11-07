@@ -6,6 +6,7 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  Switch,
 } from "react-native";
 import {
   Appbar,
@@ -14,6 +15,7 @@ import {
   FAB,
   Button,
   Avatar,
+  Text,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,6 +30,7 @@ const WelcomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [body, setBody] = useState("");
   const [tags, setTags] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -54,10 +57,11 @@ const WelcomeScreen = () => {
 
   const handlePostTwit = async () => {
     try {
-      await PostTwitHandler(body, tags.split(","));
+      await PostTwitHandler(body, tags.split(","), isPrivate);
       setModalVisible(false);
       setBody("");
       setTags("");
+      setIsPrivate(false);
       setSnackbarMessage("Twit published successfully!");
       setSnackbarVisible(true);
     } catch (error) {
@@ -140,6 +144,10 @@ const WelcomeScreen = () => {
               value={tags}
               onChangeText={setTags}
             />
+            <View style={styles.switchContainer}>
+              <Switch value={isPrivate} onValueChange={setIsPrivate} />
+              <Text style={styles.switchLabel}>Private</Text>
+            </View>
             <View style={styles.buttonContainer}>
               <Button
                 mode="contained"
@@ -230,6 +238,16 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     color: "#757575",
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  switchLabel: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#0D47A1",
   },
 });
 
