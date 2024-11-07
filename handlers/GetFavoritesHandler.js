@@ -6,10 +6,9 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const PostTwitHandler = async (body, tags, isPrivate = true) => {
+const GetFavoritesHandler = async (userId, offset = 0, limit = 10) => {
   let retries = 0;
   const maxRetries = RETRIES;
-
   while (retries < maxRetries) {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -23,34 +22,28 @@ const PostTwitHandler = async (body, tags, isPrivate = true) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(`${GATEWAY_URL}/v1/twit`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({
-          body,
-          tags,
-          is_private: isPrivate,
-        }),
-      });
-      console.log(response);
+      const response = await fetch(
+        `${GATEWAY_URL}/v1/twit/favorite?user=${userId}&offset=${offset}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        }
+      );
 
-      switch (response.status) {
-        case 204:
-          return 0;
-        case 400:
-          throw new Error(
-            "Invalid request. Check the request body or parameters.",
-          );
-        default:
-          console.log(
-            `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
-          );
-          retries++;
+      const responseJson = await response.json();
+      console.log(responseJson);
+
+      if (response.status === 200) {
+        return responseJson;
+      } else {
+        console.log(
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`
+        );
+        retries++;
       }
     } catch (error) {
-      console.log("Error posting twit: ", error);
+      console.log("Error fetching user favorites: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
-
       retries++;
 
       if (retries >= maxRetries) {
@@ -60,4 +53,4 @@ const PostTwitHandler = async (body, tags, isPrivate = true) => {
   }
 };
 
-export default PostTwitHandler;
+export default GetFavoritesHandler;

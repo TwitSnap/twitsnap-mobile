@@ -6,12 +6,14 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const PostTwitHandler = async (body, tags, isPrivate = true) => {
+// Handler to fetch user statistics in a specified period
+const GetUserStatsHandler = async (period) => {
   let retries = 0;
   const maxRetries = RETRIES;
 
   while (retries < maxRetries) {
     try {
+      // Retrieve token for authentication
       const token = await AsyncStorage.getItem("token");
 
       if (!token) {
@@ -23,34 +25,27 @@ const PostTwitHandler = async (body, tags, isPrivate = true) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(`${GATEWAY_URL}/v1/twit`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({
-          body,
-          tags,
-          is_private: isPrivate,
-        }),
-      });
+      const response = await fetch(
+        `${GATEWAY_URL}/v1/twit/user/stats?period=${period}`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        },
+      );
       console.log(response);
-
-      switch (response.status) {
-        case 204:
-          return 0;
-        case 400:
-          throw new Error(
-            "Invalid request. Check the request body or parameters.",
-          );
-        default:
-          console.log(
-            `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
-          );
-          retries++;
+      const responseJson = await response.json();
+      console.log(responseJson);
+      if (response.status === 200) {
+        return responseJson; // Successfully retrieved user statistics
+      } else {
+        console.log(
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
+        );
+        retries++;
       }
     } catch (error) {
-      console.log("Error posting twit: ", error);
+      console.log("Error fetching user stats: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
-
       retries++;
 
       if (retries >= maxRetries) {
@@ -60,4 +55,4 @@ const PostTwitHandler = async (body, tags, isPrivate = true) => {
   }
 };
 
-export default PostTwitHandler;
+export default GetUserStatsHandler;

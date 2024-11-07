@@ -3,6 +3,7 @@ import { GATEWAY_URL, RETRIES } from "../constants";
 import { Alert } from "react-native";
 
 const headers = {
+  "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/json",
 };
 
@@ -17,17 +18,15 @@ const GoogleLoginHandler = async (token) => {
   while (retries < maxRetries) {
     try {
       const response = await fetch(
-        `${GATEWAY_URL}/v1/auth/federate/google/login`,
+        `${GATEWAY_URL}/v1/auth/federate/google/login?code=${token}`,
         {
           method: "GET",
           headers: headers,
-          body: JSON.stringify(requestBody),
         },
       );
-      const responseString = JSON.stringify(response, null, 2);
 
-      Alert.alert("Response", responseString);
       const responseJson = await response.json();
+      const responseString = JSON.stringify(responseJson, null, 2);
       console.log(responseJson);
 
       switch (response.status) {
@@ -46,6 +45,7 @@ const GoogleLoginHandler = async (token) => {
           retries++;
       }
     } catch (error) {
+      Alert.alert("Response", error.message);
       console.log("Error encountered: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
 

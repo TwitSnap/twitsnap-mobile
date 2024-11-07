@@ -15,18 +15,15 @@ import {
   Card,
   HelperText,
   Divider,
-  IconButton,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { useUser } from "../contexts/UserContext";
-import CustomButton from "../components/CustomButton";
 import LoginHandler from "../handlers/LoginHandler";
 import GoogleLoginHandler from "../handlers/GoogleLoginHandler";
 import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
 import { auth } from "../firebaseConfig";
-import * as Linking from "expo-linking";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -74,21 +71,27 @@ const LoginScreen = () => {
       const firebaseUser = await signInWithCredential(auth, credential);
       const token = await firebaseUser.user.getIdToken();
 
-      //Alert.alert("token", token);
-
       const result = await GoogleLoginHandler(token);
 
       if (result === 0) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "WelcomeScreen" }],
-        });
+        const profileData = await GetMyProfileHandler();
+        setLoggedInUser(profileData);
+        if (!profileData.verified) {
+          navigation.navigate("VerifyPinScreen", {
+            user_id: profileData.uid,
+            email: profileData.email,
+          });
+        } else {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "WelcomeScreen" }],
+          });
+        }
       } else {
         Alert.alert("Google Login failed", result);
       }
     } catch (error) {
       console.error("Error during Google login:", error);
-      //Alert.alert("Error", error.message);
     }
   };
 
@@ -100,9 +103,10 @@ const LoginScreen = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       const result = await LoginHandler(email, password);
-      setIsLoading(true);
       if (result === 0) {
         const profileData = await GetMyProfileHandler();
         setLoggedInUser(profileData);
@@ -138,19 +142,6 @@ const LoginScreen = () => {
     navigation.navigate("ForgotPasswordScreen");
   };
 
-  //if (isLoading) return (
-  //<View style={styles.loadingContainer}>
-  //<ActivityIndicator size="large" color="#0000ff" />
-  //</View>);
-
-  const simulateDeepLink = () => {
-    //Linking.openURL('twitsnap://reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwY2Q4OWM3NGYyNmY0NDIxYjExMWI3Y2QzNDIxMzNlNiIsImlhdCI6MTcyOTQ3NzUzMSwiZXhwIjoxNzI5NDgxMTMxfQ.iKC7zohrY5MpeVHPHFcLVax-tcahjt7w_APF0d9VVuI');
-    navigation.navigate("ResetPasswordScreen", {
-      token:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwY2Q4OWM3NGYyNmY0NDIxYjExMWI3Y2QzNDIxMzNlNiIsImlhdCI6MTcyOTQ3NDcxOCwiZXhwIjoxNzI5NDc4MzE4fQ.95s1iCnCi3VmtSSD3c4JqP16OPyxCyFf12sxVD-RqaQ",
-    });
-  };
-
   return (
     <ScrollView style={styles.container}>
       <Image source={require("../assets/logo.png")} style={styles.image} />
@@ -158,7 +149,6 @@ const LoginScreen = () => {
       <Paragraph style={styles.subtitle}>
         Please enter your credentials
       </Paragraph>
-      <Button title="Simulate Deep Link" onPress={simulateDeepLink} />
       <Card style={styles.card}>
         <Card.Content>
           <TextInput
@@ -195,11 +185,18 @@ const LoginScreen = () => {
             Password is required
           </HelperText>
           <Divider style={styles.divider} />
-          <CustomButton
-            title="Login"
+          <Button
+            mode="contained"
             onPress={handleLogin}
-            loading={isLoading}
-          />
+            style={styles.button}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              "Login"
+            )}
+          </Button>
           <Button
             mode="contained"
             onPress={() => {
@@ -266,6 +263,10 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 12,
     backgroundColor: "#FFFFFF",
+  },
+  button: {
+    marginTop: 16,
+    backgroundColor: "#1E88E5",
   },
   googleButton: {
     marginTop: 16,

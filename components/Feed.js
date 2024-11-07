@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import Twit from "./Twit"; // Asegúrate de tener el componente Twit importado
-import GetFeedHandler from "../handlers/GetFeedHandler"; // Importar el handler
+import Twit from "./Twit"; 
+import GetFeedHandler from "../handlers/GetFeedHandler"; 
 
 const Feed = ({ userId }) => {
   const [posts, setPosts] = useState([]);
@@ -22,10 +22,10 @@ const Feed = ({ userId }) => {
 
     setFeedLoading(true);
     try {
-      const userFeed = await GetFeedHandler(offset, limit); // Llamar al handler
-      setPosts(userFeed.posts || []); // Guardar los posts del feed
-      setHasMore(userFeed.posts.length === limit); // Verificar si hay más posts
-      setOffset((prevOffset) => prevOffset + limit); // Actualizar el offset
+      const userFeed = await GetFeedHandler(offset, limit); 
+      setPosts(userFeed.posts || []); 
+      setHasMore(userFeed.posts.length === limit); 
+      setOffset((prevOffset) => prevOffset + limit); 
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
@@ -35,13 +35,12 @@ const Feed = ({ userId }) => {
 
   const loadMorePosts = async () => {
     if (isLoadingMore || !hasMore) return;
-
     setIsLoadingMore(true);
     try {
-      const userFeed = await GetFeedHandler(userId, offset, limit); // Llamar al handler para cargar más
-      setPosts((prevPosts) => [...prevPosts, ...userFeed.posts]); // Agregar los nuevos posts
-      setHasMore(userFeed.posts.length === limit); // Verificar si hay más posts
-      setOffset((prevOffset) => prevOffset + limit); // Actualizar el offset
+      const userFeed = await GetFeedHandler(offset, limit); 
+      setPosts((prevPosts) => [...prevPosts, ...userFeed.posts]); 
+      setHasMore(userFeed.posts.length === limit); 
+      setOffset((prevOffset) => prevOffset + limit); 
     } catch (error) {
       console.error("Error fetching more posts:", error);
     } finally {
@@ -50,7 +49,7 @@ const Feed = ({ userId }) => {
   };
 
   useEffect(() => {
-    loadPosts(); // Cargar los posts al montar el componente
+    loadPosts(); 
   }, [userId]);
 
   return (
@@ -63,7 +62,9 @@ const Feed = ({ userId }) => {
         ) : (
           <>
             {posts.length > 0 ? (
-              posts.map((post) => <Twit key={post.post_id} post={post} />)
+              posts.map((post) => (
+  <Twit key={`${post.post_id}-${post.created_by}`} post={post} />
+))
             ) : (
               <Text style={styles.noPostsText}>No posts available</Text>
             )}

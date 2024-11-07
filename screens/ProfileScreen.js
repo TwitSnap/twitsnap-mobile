@@ -8,8 +8,17 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
+  Modal,
 } from "react-native";
-import { Text, Card, Button, HelperText, Avatar } from "react-native-paper";
+import {
+  Text,
+  Card,
+  Button,
+  HelperText,
+  Avatar,
+  Appbar,
+  Menu,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRoute } from "@react-navigation/native";
@@ -17,11 +26,13 @@ import { useUser } from "../contexts/UserContext";
 import * as ImagePicker from "expo-image-picker";
 import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
-import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
+import GetUserStatsHandler from "../handlers/GetUserStatsHandler";
 import CustomButton from "../components/CustomButton";
 import MyFeed from "../components/MyFeed";
 import FollowButton from "../components/FollowButton";
 import CountryPicker, { Flag } from "react-native-country-picker-modal";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -45,6 +56,90 @@ const ProfileScreen = () => {
   const [following, setFollowing] = useState(0);
   const [isEditableLoading, setIsEditableLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [stats, setStats] = useState({ comments: 0, likes: 0, shares: 0 });
+  const [showStats, setShowStats] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+
+  const handleStatsPress = async () => {
+    const now = new Date();
+    const years = now.getFullYear() - startDate.getFullYear();
+    const months = now.getMonth() - startDate.getMonth();
+    const days = now.getDate() - startDate.getDate();
+
+    let formattedDuration = "";
+
+    if (years > 0) {
+      formattedDuration += `${years}Y`;
+    }
+    if (months > 0 || (years > 0 && days < 0)) {
+      // Si hay meses negativos, ajustar el año y calcular meses correctamente
+      const adjustedMonths = (months + 12) % 12;
+      formattedDuration += `${adjustedMonths}M`;
+    } else if (months > 0) {
+      formattedDuration += `${months}M`;
+    }
+    if (days > 0 || (months > 0 && days < 0)) {
+      // Si hay días negativos, ajustar el mes y calcular días correctamente
+      const adjustedDays =
+        (days + new Date(now.getFullYear(), now.getMonth(), 0).getDate()) %
+        new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      formattedDuration += `${adjustedDays}D`;
+    } else if (days > 0) {
+      formattedDuration += `${days}D`;
+    }
+
+    const statsData = await GetUserStatsHandler(formattedDuration || "0D");
+    setStats(statsData);
+    setShowStats(true);
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || new Date();
+    setStartDate(currentDate);
+    setShowPicker(false);
+  };
+
+  const openModal = () => {
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setShowStats(false);
+  };
+
+   const openFavoritesScreen = () => {
+  const idToUse = userId || loggedInUser?.uid; 
+  if (idToUse) {
+    navigation.navigate("FavoritesScreen", { userId: idToUse });
+  } else {
+    console.log("No user ID available");
+    
+  }
+};
+
+    React.useLayoutEffect(() => {
+    navigation.setOptions({
+   
+      headerRight: () => (
+         <View style={styles.headerRightContainer}>
+           <View style={styles.leftSpace} />
+           {allowEdit && (
+            <TouchableOpacity onPress={openModal} style={styles.iconContainer}>
+              <Ionicons name="stats-chart" size={24} color="#000" />
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity onPress={openFavoritesScreen} style={styles.iconContainer}>
+            <Ionicons name="star" size={24} color="#000" />
+          </TouchableOpacity>
+         
+        </View>
+      ),
+    });
+  }, [navigation, allowEdit, userId]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -200,6 +295,57 @@ const ProfileScreen = () => {
   if (allowEdit) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
+        {/* Modal con estilo de caja */}
+        <Modal
+          visible={showModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={closeModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>User Stats</Text>
+
+              {/* Selector de fecha dentro del modal */}
+              <Text style={styles.datePickerLabel}>Select Start Date:</Text>
+              <TouchableOpacity
+                onPress={() => setShowPicker(true)}
+                style={styles.datePickerButton}
+              >
+                <Text style={styles.datePickerText}>
+                  {startDate.toDateString()}
+                </Text>
+              </TouchableOpacity>
+
+              {showPicker && (
+                <DateTimePicker
+                  value={startDate}
+                  mode="date"
+                  display="default"
+                  onChange={onDateChange}
+                />
+              )}
+
+              {showStats && (
+                <View>
+                  <Text>Likes♥: {stats.likes}</Text>
+                  <Text>Shares🔁: {stats.shares}</Text>
+                  <Text>Comments📩: {stats.comments}</Text>
+                </View>
+              )}
+              <TouchableOpacity
+                onPress={handleStatsPress}
+                style={styles.getStatsButton}
+              >
+                <Text style={styles.getStatsText}>Get Stats</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         <TouchableOpacity
           onPress={handleImagePick}
           style={styles.profileHeader}
@@ -438,6 +584,68 @@ const styles = StyleSheet.create({
   noPostsText: {
     textAlign: "center",
     color: "#999",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  datePickerLabel: {
+    marginVertical: 10,
+  },
+  datePickerButton: {
+    padding: 10,
+    backgroundColor: "#007bff",
+    borderRadius: 5,
+    marginVertical: 10,
+  },
+  datePickerText: {
+    color: "#fff",
+  },
+  modalBox: {
+    width: "80%",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    position: "relative", 
+  },
+  closeButton: {
+    position: "absolute", 
+    top: 10,
+    right: 10,
+    padding: 5,
+  },
+  closeText: {
+    color: "#fff",
+  },
+  getStatsButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#28a745",
+    borderRadius: 5,
+  },
+  getStatsText: {
+    color: "#fff",
+  },
+  iconContainer: {
+    marginRight: 10,
+  },
+   headerRightContainer: {
+    flexDirection: "row", 
+    width: "100%",
+  },
+  leftSpace: {
+    flex: 1, 
+  },
+  iconContainer: {
+    marginRight: -140,
+    paddingHorizontal: 140, 
   },
 });
 

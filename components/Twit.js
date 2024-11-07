@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  Switch,
 } from "react-native";
+import { Button, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
-import GetProfileHandler from "../handlers/GetProfileHandler";
 import LikePostHandler from "../handlers/LikePostHandler";
 import RetwitPostHandler from "../handlers/RetwitPostHandler";
+import Icon from "react-native-vector-icons/FontAwesome";
+import FavoritePostHandler from "../handlers/FavoritePostHandler";
+import EditPostHandler from "../handlers/EditPostHandler";
+import { useUser } from "../contexts/UserContext";
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -27,20 +33,55 @@ const formatTimestamp = (timestamp) => {
 
 const Twit = ({ post }) => {
   const navigation = useNavigation();
+   const { loggedInUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [likeAmount, setLikeAmount] = useState(post.like_ammount);
+  const [liked, setLiked] = useState(post.liked);
   const [retwitAmount, setRetwitAmount] = useState(post.retweet_ammount);
+  const [isFavorited, setIsFavorited] = useState(post.favourite);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [body, setBody] = useState(post.message);
+  const [tags, setTags] = useState(post.tags || "");
+  const [isPrivate, setIsPrivate] = useState(post.is_private);
 
   if (!post) {
     return null;
   }
+
+  const handleEditTwit = async () => {
+    try {
+     
+      const isSuccessful = await EditPostHandler(post.post_id, body, tags);
+
+     
+      if (!isSuccessful) {
+        throw new Error("Failed to update the post.");
+      }
+
+     
+      post.message = body;
+      post.tags = tags;
+      post.is_private = isPrivate;
+
+      
+      setModalVisible(false);
+    } catch (error) {
+
+      Alert.alert(
+        "Error",
+        error.message || "An error occurred while editing the post",
+      );
+    }
+  };
 
   const handleLike = async () => {
     try {
       const response = await LikePostHandler(post.post_id);
       if (response == true) {
         setLikeAmount(likeAmount + 1);
+        setLiked(true);
         post.like_ammount++;
+        post.liked = true;
       }
     } catch (error) {
       console.log("Error liking the post:", error.message);
@@ -70,6 +111,18 @@ const Twit = ({ post }) => {
     });
   };
 
+  const handleFavorite = async () => {
+    if (isFavorited == true) return;
+    try {
+      const response = await FavoritePostHandler(post.post_id);
+      if (response == true) {
+        setIsFavorited(true);
+      }
+    } catch (error) {
+      console.log("Error favoriting the post:", error.message);
+    }
+  };
+
   const handleCommentPress = () => {
     if (post.is_comment && post.origin_post) {
       navigation.navigate({
@@ -95,6 +148,8 @@ const Twit = ({ post }) => {
 
   const time = formatTimestamp(post.created_at);
 
+  const canEdit = loggedInUser?.uid === post.created_by;
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -106,6 +161,10 @@ const Twit = ({ post }) => {
   return (
     <View style={styles.post}>
       <TouchableOpacity onPress={handleOpenTwit}>
+        {post.is_private && (
+          <Icon name="lock" size={18} color="#000" style={styles.lockIcon} />
+        )}
+
         {post.is_retweet && (
           <Text style={styles.retweetedText}>Retwited🔁</Text>
         )}
@@ -132,13 +191,80 @@ const Twit = ({ post }) => {
         <Text style={styles.postContent}>{post.message}</Text>
         <View style={styles.commentContainer}>
           <TouchableOpacity onPress={handleLike}>
-            <Text style={styles.comment}>{likeAmount}♥</Text>
+            <Text style={styles.comment}>{likeAmount}{" "}
+            <Icon
+              name={liked ? "heart" : "heart-o"}
+              size={18}
+              color={liked ? "#FF0000" : "#1E88E5"}
+            />
+             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleRetwit}>
-            <Text style={styles.comment}>{retwitAmount}🔁</Text>
+            <Text style={styles.comment}>
+              {retwitAmount}{" "}
+              <Icon name="retweet" size={18} />
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.comment}>{post.comment_ammount}📩</Text>
+          <Text style={styles.comment}>
+            {post.comment_ammount}{" "}
+            <Icon name="comment" size={18} />
+          </Text>
+          {canEdit && (
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              style={styles.editButton}
+            >
+              <Icon name="pencil" size={18} color="#1E88E5" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={handleFavorite} style={styles.favorite}>
+            <Icon
+              name={isFavorited ? "star" : "star-o"}
+              size={18}
+              color="#FFD700"
+            />
+          </TouchableOpacity>
         </View>
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Edit message"
+                value={body}
+                onChangeText={setBody}
+                multiline
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Tags (separated by commas)"
+                value={tags}
+                onChangeText={setTags}
+              />
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="contained"
+                  onPress={handleEditTwit}
+                  style={styles.button}
+                >
+                  Edit Twit
+                </Button>
+                <Button
+                  mode="text"
+                  onPress={() => setModalVisible(false)}
+                  style={styles.cancelButton}
+                >
+                  Cancel
+                </Button>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </TouchableOpacity>
     </View>
   );
@@ -199,6 +325,11 @@ const styles = StyleSheet.create({
     color: "#1E88E5",
     marginRight: 15,
   },
+  commentLike: {
+    fontSize: 18,
+    color: "#1E88E5",
+    marginRight: 5,
+  },
   retweetedText: {
     fontSize: 12,
     color: "#1E88E5",
@@ -211,6 +342,70 @@ const styles = StyleSheet.create({
     color: "#FF5733",
     marginBottom: 5,
     fontStyle: "italic",
+  },
+  likeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  lockIcon: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
+  favorite: {
+    marginLeft: "auto",
+    paddingLeft: 15,
+  },
+  editButton: {
+    marginLeft: "auto",
+    paddingLeft: 100,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContainer: {
+    width: "90%",
+    backgroundColor: "#FFF",
+    padding: 20,
+    borderRadius: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 8,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+  button: {
+    backgroundColor: "#1E88E5",
+  },
+  profileHeader: {
+    padding: 14,
+  },
+  cancelButton: {
+    color: "#757575",
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  switchLabel: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#0D47A1",
+  },
+  icon: {
+    paddingLeft: 5,
+    paddingRight: 5, 
   },
 });
 

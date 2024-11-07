@@ -2,13 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
-  "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
 };
 
-const GetFeedHandler = async (offset = 0, limit = 10) => {
+const FavoritePostHandler = async (postId) => {
   let retries = 0;
   const maxRetries = RETRIES;
+
   while (retries < maxRetries) {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -23,18 +23,20 @@ const GetFeedHandler = async (offset = 0, limit = 10) => {
       };
 
       const response = await fetch(
-        `${GATEWAY_URL}/v1/twit/feed?offset=${offset}&limit=${limit}`,
+        `${GATEWAY_URL}/v1/twit/favorite?post_id=${postId}`,
         {
-          method: "GET",
+          method: "POST",
           headers: authHeaders,
         },
       );
 
-      const responseJson = await response.json();
-      console.log(responseJson);
-
-      if (response.status === 200) {
-        return responseJson;
+      console.log(response);
+      if (response.status === 204) {
+        console.log("Post added to favorites successfully.");
+        return true;
+      } else if (response.status === 404) {
+        console.log("Post not found.");
+        return false;
       } else {
         console.log(
           `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
@@ -42,7 +44,7 @@ const GetFeedHandler = async (offset = 0, limit = 10) => {
         retries++;
       }
     } catch (error) {
-      console.log("Error fetching user feed: ", error);
+      console.log("Error adding post to favorites: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
       retries++;
 
@@ -53,4 +55,4 @@ const GetFeedHandler = async (offset = 0, limit = 10) => {
   }
 };
 
-export default GetFeedHandler;
+export default FavoritePostHandler;
