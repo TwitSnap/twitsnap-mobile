@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Switch,
+  Alert,
 } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
@@ -16,6 +17,7 @@ import RetwitPostHandler from "../handlers/RetwitPostHandler";
 import Icon from "react-native-vector-icons/FontAwesome";
 import FavoritePostHandler from "../handlers/FavoritePostHandler";
 import EditPostHandler from "../handlers/EditPostHandler";
+import DeletePostHandler from "../handlers/DeletePostHandler";
 import { useUser } from "../contexts/UserContext";
 
 const formatTimestamp = (timestamp) => {
@@ -31,12 +33,13 @@ const formatTimestamp = (timestamp) => {
   });
 };
 
-const Twit = ({ post }) => {
+const Twit = ({ post, onDelete }) => {
   const navigation = useNavigation();
-   const { loggedInUser } = useUser();
+  const { loggedInUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [likeAmount, setLikeAmount] = useState(post.like_ammount);
   const [liked, setLiked] = useState(post.liked);
+  const [retwited, setRetwited] = useState(post.retweeted);
   const [retwitAmount, setRetwitAmount] = useState(post.retweet_ammount);
   const [isFavorited, setIsFavorited] = useState(post.favourite);
   const [modalVisible, setModalVisible] = useState(false);
@@ -48,25 +51,42 @@ const Twit = ({ post }) => {
     return null;
   }
 
+  const handleDeleteTwit = async () => {
+    // Llamamos a la función onDelete pasándole el post_id para eliminarlo
+    if (onDelete) {
+      onDelete(post.post_id);
+    } else {
+      try {
+        const isDeleted = await DeletePostHandler(post.post_id);
+        if (isDeleted) {
+          navigation.goBack();
+          Alert.alert("Success", "The post has been deleted.");
+        } else {
+          throw new Error("Failed to delete the post.");
+        }
+      } catch (error) {
+        Alert.alert(
+          "Error",
+          error.message || "An error occurred while deleting the post",
+        );
+      }
+    }
+  };
+
   const handleEditTwit = async () => {
     try {
-     
       const isSuccessful = await EditPostHandler(post.post_id, body, tags);
 
-     
       if (!isSuccessful) {
         throw new Error("Failed to update the post.");
       }
 
-     
       post.message = body;
       post.tags = tags;
       post.is_private = isPrivate;
 
-      
       setModalVisible(false);
     } catch (error) {
-
       Alert.alert(
         "Error",
         error.message || "An error occurred while editing the post",
@@ -77,23 +97,40 @@ const Twit = ({ post }) => {
   const handleLike = async () => {
     try {
       const response = await LikePostHandler(post.post_id);
-      if (response == true) {
-        setLikeAmount(likeAmount + 1);
-        setLiked(true);
-        post.like_ammount++;
-        post.liked = true;
+      if (response === true) {
+        if (liked) {
+          // Ya estaba "liked", así que elimina el like
+          setLikeAmount(likeAmount - 1);
+          setLiked(false);
+          post.like_ammount--;
+          post.liked = false;
+        } else {
+          // No estaba "liked", así que agrega el like
+          setLikeAmount(likeAmount + 1);
+          setLiked(true);
+          post.like_ammount++;
+          post.liked = true;
+        }
       }
     } catch (error) {
       console.log("Error liking the post:", error.message);
     }
   };
-
   const handleRetwit = async () => {
     try {
       const response = await RetwitPostHandler(post.post_id);
       if (response == true) {
-        setRetwitAmount(retwitAmount + 1);
-        post.retweet_ammount++;
+        if (retwited) {
+          setRetwitAmount(retwitAmount - 1);
+          setRetwited(false);
+          post.retweet_ammount--;
+          post.retweeted = false;
+        } else {
+          setRetwitAmount(retwitAmount + 1);
+          setRetwited(true);
+          post.retweet_ammount++;
+          post.retweeted = true;
+        }
       }
     } catch (error) {
       console.log("Error liking the post:", error.message);
@@ -191,23 +228,27 @@ const Twit = ({ post }) => {
         <Text style={styles.postContent}>{post.message}</Text>
         <View style={styles.commentContainer}>
           <TouchableOpacity onPress={handleLike}>
-            <Text style={styles.comment}>{likeAmount}{" "}
-            <Icon
-              name={liked ? "heart" : "heart-o"}
-              size={18}
-              color={liked ? "#FF0000" : "#1E88E5"}
-            />
-             </Text>
+            <Text style={styles.comment}>
+              {likeAmount}{" "}
+              <Icon
+                name={liked ? "heart" : "heart-o"}
+                size={18}
+                color={liked ? "#FF0000" : "#1E88E5"}
+              />
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleRetwit}>
             <Text style={styles.comment}>
               {retwitAmount}{" "}
-              <Icon name="retweet" size={18} />
+              <Icon
+                name="retweet"
+                size={18}
+                color={retwited ? "#1DB954" : "#1E88E5"}
+              />
             </Text>
           </TouchableOpacity>
           <Text style={styles.comment}>
-            {post.comment_ammount}{" "}
-            <Icon name="comment" size={18} />
+            {post.comment_ammount} <Icon name="comment" size={18} />
           </Text>
           {canEdit && (
             <TouchableOpacity
@@ -252,7 +293,14 @@ const Twit = ({ post }) => {
                   onPress={handleEditTwit}
                   style={styles.button}
                 >
-                  Edit Twit
+                  Edit
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleDeleteTwit}
+                  style={[styles.button, { backgroundColor: "red" }]}
+                >
+                  Delete
                 </Button>
                 <Button
                   mode="text"
@@ -405,7 +453,10 @@ const styles = StyleSheet.create({
   },
   icon: {
     paddingLeft: 5,
-    paddingRight: 5, 
+    paddingRight: 5,
+  },
+  deleteButton: {
+    color: "#FF0000",
   },
 });
 

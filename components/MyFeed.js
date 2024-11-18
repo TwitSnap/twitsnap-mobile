@@ -5,9 +5,11 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Twit from "./Twit"; // Asegúrate de tener el componente Twit importado
 import GetUserPostsHandler from "../handlers/GetUserPostsHandler";
+import DeletePostHandler from "../handlers/DeletePostHandler";
 
 const MyFeed = ({ userId }) => {
   const [posts, setPosts] = useState([]);
@@ -22,7 +24,7 @@ const MyFeed = ({ userId }) => {
 
     setTwitsLoading(true);
     try {
-      const userPosts = await GetUserPostsHandler(userId, offset, limit);
+      const userPosts = await GetUserPostsHandler(userId, 0, 5);
       setPosts(userPosts.posts);
       setHasMore(userPosts.posts.length === limit);
       setOffset(limit);
@@ -53,6 +55,26 @@ const MyFeed = ({ userId }) => {
     loadPosts();
   }, [userId]);
 
+  const handleDeleteTwit = async (postId) => {
+    try {
+      const isDeleted = await DeletePostHandler(postId);
+      if (isDeleted) {
+        setPosts((prevPosts) =>
+          prevPosts.filter((post) => post.post_id !== postId),
+        );
+        loadPosts();
+        Alert.alert("Success", "The post has been deleted.");
+      } else {
+        throw new Error("Failed to delete the post.");
+      }
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error.message || "An error occurred while deleting the post",
+      );
+    }
+  };
+
   return (
     <View style={styles.postsContainer}>
       <ScrollView>
@@ -63,7 +85,13 @@ const MyFeed = ({ userId }) => {
         ) : (
           <>
             {posts.length > 0 ? (
-              posts.map((post) => <Twit key={post.post_id} post={post} />)
+              posts.map((post) => (
+                <Twit
+                  key={post.post_id}
+                  post={post}
+                  onDelete={handleDeleteTwit}
+                />
+              ))
             ) : (
               <Text style={styles.noPostsText}>No twits available</Text>
             )}

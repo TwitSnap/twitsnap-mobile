@@ -4,7 +4,6 @@ const headers = {
   accept: "application/json",
 };
 
-
 const GetInterestsHandler = async () => {
   let retries = 0;
   const maxRetries = RETRIES;
@@ -31,7 +30,7 @@ const GetInterestsHandler = async () => {
         console.log(`Retrying... attempt ${retries}`);
         await new Promise((resolve) =>
           setTimeout(resolve, Math.pow(2, retries) * 1000),
-        ); 
+        );
       } else {
         throw new Error(
           "Maximum retry attempts reached. Unable to fetch interests.",

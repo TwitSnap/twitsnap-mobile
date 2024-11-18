@@ -6,8 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import Twit from "./Twit"; // Asegúrate de tener el componente Comment importado
-import GetCommentsHandler from "../handlers/GetCommentsHandler"; // Asegúrate de que esta función está implementada
+import Twit from "./Twit";
+import GetCommentsHandler from "../handlers/GetCommentsHandler";
+import DeletePostHandler from "../handlers/DeletePostHandler";
 
 const Comments = ({ post }) => {
   const [comments, setComments] = useState([]);
@@ -23,6 +24,9 @@ const Comments = ({ post }) => {
 
   const calculateHasMore = (comments) => {
     let total = 0;
+    if (comments.length == 0) {
+      return false;
+    }
     if (totalComments == 0) {
       total = post.comment_ammount;
       comments.forEach((comment) => {
@@ -43,7 +47,7 @@ const Comments = ({ post }) => {
 
     setCommentsLoading(true);
     try {
-      const fetchedComments = await GetCommentsHandler(postId, offset, limit);
+      const fetchedComments = await GetCommentsHandler(postId, 0, 5);
       setComments(fetchedComments || []);
       setOffset(limit);
       setHasMore(calculateHasMore(fetchedComments || []));
@@ -74,6 +78,26 @@ const Comments = ({ post }) => {
     loadComments();
   }, [postId]);
 
+  const handleDeleteTwit = async (postId) => {
+    try {
+      const isDeleted = await DeletePostHandler(postId);
+      if (isDeleted) {
+        setComments((prevPosts) =>
+          prevPosts.filter((post) => post.post_id !== postId),
+        );
+        setCommentsLoading(false);
+        Alert.alert("Success", "The post has been deleted.");
+      } else {
+        throw new Error("Failed to delete the post.");
+      }
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error.message || "An error occurred while deleting the post",
+      );
+    }
+  };
+
   return (
     <View style={styles.commentsContainer}>
       <ScrollView>
@@ -85,7 +109,11 @@ const Comments = ({ post }) => {
           <>
             {comments.length > 0 ? (
               comments.map((comment) => (
-                <Twit key={comment.post_id} post={comment} />
+                <Twit
+                  key={comment.post_id}
+                  post={comment}
+                  onDelete={handleDeleteTwit}
+                />
               ))
             ) : (
               <Text style={styles.noCommentsText}>No comments available</Text>

@@ -5,9 +5,11 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Twit from "./Twit";
-import GetFavoritesHandler from "../handlers/GetFavoritesHandler"; 
+import GetFavoritesHandler from "../handlers/GetFavoritesHandler";
+import DeletePostHandler from "../handlers/DeletePostHandler";
 
 const Favorites = ({ userId }) => {
   const [favorites, setFavorites] = useState([]);
@@ -18,49 +20,64 @@ const Favorites = ({ userId }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const loadFavorites = async () => {
-  if (favoritesLoading) return;
-  setFavoritesLoading(true);
-  try {
-    
-    const response = await GetFavoritesHandler(userId, offset, limit);
+    if (favoritesLoading) return;
+    setFavoritesLoading(true);
+    try {
+      const response = await GetFavoritesHandler(userId, 0, 5);
 
- 
-    const userFavorites = response || []; 
+      const userFavorites = response || [];
 
-    setFavorites(userFavorites);
-    setHasMore(userFavorites.length === limit);
-    setOffset(limit);
-  } catch (error) {
-    console.error("Error fetching favorites:", error);
-  } finally {
-    setFavoritesLoading(false);
-  }
-};
+      setFavorites(userFavorites);
+      setHasMore(userFavorites.length === limit);
+      setOffset(limit);
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  };
 
-const loadMoreFavorites = async () => {
-  if (isLoadingMore || !hasMore) return;
+  const loadMoreFavorites = async () => {
+    if (isLoadingMore || !hasMore) return;
 
-  setIsLoadingMore(true);
-  try {
-    const response = await GetFavoritesHandler(userId, offset, limit);
-    const userFavorites = response; 
+    setIsLoadingMore(true);
+    try {
+      const response = await GetFavoritesHandler(userId, offset, limit);
+      const userFavorites = response;
 
-    setFavorites((prevFavorites) => [
-      ...prevFavorites,
-      ...userFavorites,
-    ]);
-    setHasMore(userFavorites.length === limit);
-    setOffset((prevOffset) => prevOffset + limit);
-  } catch (error) {
-    console.error("Error fetching more favorites:", error);
-  } finally {
-    setIsLoadingMore(false);
-  }
-};
+      setFavorites((prevFavorites) => [...prevFavorites, ...userFavorites]);
+      setHasMore(userFavorites.length === limit);
+      setOffset((prevOffset) => prevOffset + limit);
+    } catch (error) {
+      console.error("Error fetching more favorites:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     loadFavorites();
   }, [userId]);
+
+  const handleDeleteTwit = async (postId) => {
+    try {
+      const isDeleted = await DeletePostHandler(postId);
+      if (isDeleted) {
+        setFavorites((prevPosts) =>
+          prevPosts.filter((post) => post.post_id !== postId),
+        );
+        loadFavorites();
+        Alert.alert("Success", "The post has been deleted.");
+      } else {
+        throw new Error("Failed to delete the post.");
+      }
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error.message || "An error occurred while deleting the post",
+      );
+    }
+  };
 
   return (
     <View style={styles.favoritesContainer}>
@@ -73,7 +90,11 @@ const loadMoreFavorites = async () => {
           <>
             {favorites.length > 0 ? (
               favorites.map((favorite) => (
-                <Twit key={favorite.post_id} post={favorite} />
+                <Twit
+                  key={favorite.post_id}
+                  post={favorite}
+                  onDelete={handleDeleteTwit}
+                />
               ))
             ) : (
               <Text style={styles.noFavoritesText}>No favorites available</Text>

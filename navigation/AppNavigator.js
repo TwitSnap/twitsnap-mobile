@@ -59,7 +59,7 @@ const AppNavigator = () => {
         component={TwitScreen}
         options={{ headerShown: true, headerTitle: "" }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name={"FavoritesScreen"}
         component={FavoritesScreen}
         options={{ headerShown: true, headerTitle: "" }}

@@ -2,13 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
-  "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
 };
 
-const GetFavoritesHandler = async (userId, offset = 0, limit = 10) => {
+const DeletePostHandler = async (postId) => {
   let retries = 0;
   const maxRetries = RETRIES;
+
   while (retries < maxRetries) {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -23,29 +23,29 @@ const GetFavoritesHandler = async (userId, offset = 0, limit = 10) => {
       };
 
       const response = await fetch(
-        `${GATEWAY_URL}/v1/twit/favorite?user=${userId}&offset=${offset}&limit=${limit}`,
+        `${GATEWAY_URL}/v1/twit/post?post_id=${postId}`,
         {
-          method: "GET",
+          method: "DELETE",
           headers: authHeaders,
         },
       );
 
-      const responseJson = await response.json();
-      console.log(responseJson);
-
-      if (response.status === 200) {
-        return responseJson;
+      if (response.status === 204) {
+        return true;
+      } else if (response.status === 422) {
+        const responseJson = await response.json();
+        throw new Error(
+          "Validation error: " + JSON.stringify(responseJson.detail),
+        );
       } else {
+        retries++;
         console.log(
           `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
         );
-        retries++;
       }
     } catch (error) {
-      console.log("Error fetching user favorites: ", error);
-      console.log(`Retrying... attempt ${retries + 1}`);
+      console.log("Error deleting post: ", error);
       retries++;
-
       if (retries >= maxRetries) {
         throw new Error("Maximum retry attempts reached. " + error.message);
       }
@@ -53,4 +53,4 @@ const GetFavoritesHandler = async (userId, offset = 0, limit = 10) => {
   }
 };
 
-export default GetFavoritesHandler;
+export default DeletePostHandler;

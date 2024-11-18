@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GATEWAY_URL, RETRIES } from "../constants";
+import { Alert } from "react-native";
 
 const headers = {
   "Content-Type": "application/json",
@@ -9,7 +10,6 @@ const headers = {
 const GetMyProfileHandler = async () => {
   let retries = 0;
   const maxRetries = RETRIES;
-
   while (retries < maxRetries) {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -22,7 +22,6 @@ const GetMyProfileHandler = async () => {
         ...headers,
         Authorization: `Bearer ${token}`,
       };
-
       const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
         method: "GET",
         headers: authHeaders,
@@ -43,7 +42,7 @@ const GetMyProfileHandler = async () => {
     } catch (error) {
       console.log("Error fetching user profile: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
-
+      Alert.alert(error.message);
       retries++;
 
       if (retries >= maxRetries) {

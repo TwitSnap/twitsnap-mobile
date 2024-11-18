@@ -30,7 +30,7 @@ const LoginHandler = async (email, password) => {
           const token = responseJson.token;
           await AsyncStorage.setItem("token", token);
           return 0;
-        case 400:
+        case 401:
           return new Error(
             "Incorrect email or password. Please check your credentials and try again.",
           );

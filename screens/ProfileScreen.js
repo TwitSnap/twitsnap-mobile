@@ -63,34 +63,8 @@ const ProfileScreen = () => {
   const [showPicker, setShowPicker] = useState(false);
 
   const handleStatsPress = async () => {
-    const now = new Date();
-    const years = now.getFullYear() - startDate.getFullYear();
-    const months = now.getMonth() - startDate.getMonth();
-    const days = now.getDate() - startDate.getDate();
-
-    let formattedDuration = "";
-
-    if (years > 0) {
-      formattedDuration += `${years}Y`;
-    }
-    if (months > 0 || (years > 0 && days < 0)) {
-      // Si hay meses negativos, ajustar el año y calcular meses correctamente
-      const adjustedMonths = (months + 12) % 12;
-      formattedDuration += `${adjustedMonths}M`;
-    } else if (months > 0) {
-      formattedDuration += `${months}M`;
-    }
-    if (days > 0 || (months > 0 && days < 0)) {
-      // Si hay días negativos, ajustar el mes y calcular días correctamente
-      const adjustedDays =
-        (days + new Date(now.getFullYear(), now.getMonth(), 0).getDate()) %
-        new Date(now.getFullYear(), now.getMonth(), 0).getDate();
-      formattedDuration += `${adjustedDays}D`;
-    } else if (days > 0) {
-      formattedDuration += `${days}D`;
-    }
-
-    const statsData = await GetUserStatsHandler(formattedDuration || "0D");
+    const formattedDate = startDate.toISOString().split("T")[0];
+    const statsData = await GetUserStatsHandler(formattedDate);
     setStats(statsData);
     setShowStats(true);
   };
@@ -110,32 +84,32 @@ const ProfileScreen = () => {
     setShowStats(false);
   };
 
-   const openFavoritesScreen = () => {
-  const idToUse = userId || loggedInUser?.uid; 
-  if (idToUse) {
-    navigation.navigate("FavoritesScreen", { userId: idToUse });
-  } else {
-    console.log("No user ID available");
-    
-  }
-};
+  const openFavoritesScreen = () => {
+    const idToUse = userId || loggedInUser?.uid;
+    if (idToUse) {
+      navigation.navigate("FavoritesScreen", { userId: idToUse });
+    } else {
+      console.log("No user ID available");
+    }
+  };
 
-    React.useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     navigation.setOptions({
-   
       headerRight: () => (
-         <View style={styles.headerRightContainer}>
-           <View style={styles.leftSpace} />
-           {allowEdit && (
+        <View style={styles.headerRightContainer}>
+          <View style={styles.leftSpace} />
+          {allowEdit && (
             <TouchableOpacity onPress={openModal} style={styles.iconContainer}>
               <Ionicons name="stats-chart" size={24} color="#000" />
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity onPress={openFavoritesScreen} style={styles.iconContainer}>
+          <TouchableOpacity
+            onPress={openFavoritesScreen}
+            style={styles.iconContainer}
+          >
             <Ionicons name="star" size={24} color="#000" />
           </TouchableOpacity>
-         
         </View>
       ),
     });
@@ -326,6 +300,7 @@ const ProfileScreen = () => {
                   mode="date"
                   display="default"
                   onChange={onDateChange}
+                  maximumDate={new Date()}
                 />
               )}
 
@@ -613,10 +588,10 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
-    position: "relative", 
+    position: "relative",
   },
   closeButton: {
-    position: "absolute", 
+    position: "absolute",
     top: 10,
     right: 10,
     padding: 5,
@@ -636,16 +611,16 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginRight: 10,
   },
-   headerRightContainer: {
-    flexDirection: "row", 
+  headerRightContainer: {
+    flexDirection: "row",
     width: "100%",
   },
   leftSpace: {
-    flex: 1, 
+    flex: 1,
   },
   iconContainer: {
     marginRight: -140,
-    paddingHorizontal: 140, 
+    paddingHorizontal: 140,
   },
 });
 

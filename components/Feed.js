@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import Twit from "./Twit"; 
-import GetFeedHandler from "../handlers/GetFeedHandler"; 
+import Twit from "./Twit";
+import GetFeedHandler from "../handlers/GetFeedHandler";
 
 const Feed = ({ userId }) => {
   const [posts, setPosts] = useState([]);
@@ -22,10 +22,10 @@ const Feed = ({ userId }) => {
 
     setFeedLoading(true);
     try {
-      const userFeed = await GetFeedHandler(offset, limit); 
-      setPosts(userFeed.posts || []); 
-      setHasMore(userFeed.posts.length === limit); 
-      setOffset((prevOffset) => prevOffset + limit); 
+      const userFeed = await GetFeedHandler(offset, limit);
+      setPosts(userFeed.posts || []);
+      setHasMore(userFeed.posts.length === limit);
+      setOffset((prevOffset) => prevOffset + limit);
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
@@ -37,10 +37,10 @@ const Feed = ({ userId }) => {
     if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
     try {
-      const userFeed = await GetFeedHandler(offset, limit); 
-      setPosts((prevPosts) => [...prevPosts, ...userFeed.posts]); 
-      setHasMore(userFeed.posts.length === limit); 
-      setOffset((prevOffset) => prevOffset + limit); 
+      const userFeed = await GetFeedHandler(offset, limit);
+      setPosts((prevPosts) => [...prevPosts, ...userFeed.posts]);
+      setHasMore(userFeed.posts.length === limit);
+      setOffset((prevOffset) => prevOffset + limit);
     } catch (error) {
       console.error("Error fetching more posts:", error);
     } finally {
@@ -49,7 +49,7 @@ const Feed = ({ userId }) => {
   };
 
   useEffect(() => {
-    loadPosts(); 
+    loadPosts();
   }, [userId]);
 
   return (
@@ -63,8 +63,8 @@ const Feed = ({ userId }) => {
           <>
             {posts.length > 0 ? (
               posts.map((post) => (
-  <Twit key={`${post.post_id}-${post.created_by}`} post={post} />
-))
+                <Twit key={`${post.post_id}-${post.created_by}`} post={post} />
+              ))
             ) : (
               <Text style={styles.noPostsText}>No posts available</Text>
             )}

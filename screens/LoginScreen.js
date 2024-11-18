@@ -36,6 +36,7 @@ const LoginScreen = () => {
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -67,6 +68,7 @@ const LoginScreen = () => {
 
   const handleGoogleLogin = async (idToken) => {
     try {
+      setIsLoadingGoogle(true);
       const credential = GoogleAuthProvider.credential(idToken);
       const firebaseUser = await signInWithCredential(auth, credential);
       const token = await firebaseUser.user.getIdToken();
@@ -76,6 +78,7 @@ const LoginScreen = () => {
       if (result === 0) {
         const profileData = await GetMyProfileHandler();
         setLoggedInUser(profileData);
+        setIsLoadingGoogle(false);
         if (!profileData.verified) {
           navigation.navigate("VerifyPinScreen", {
             user_id: profileData.uid,
@@ -129,7 +132,7 @@ const LoginScreen = () => {
 
       setIsLoading(false);
     } catch (error) {
-      console.error(error.message);
+      //console.error(error.message);
       setIsLoading(false);
     }
   };
@@ -205,7 +208,11 @@ const LoginScreen = () => {
             disabled={!request}
             style={styles.googleButton}
           >
-            Login with Google
+            {isLoadingGoogle ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              "Login with Google"
+            )}
           </Button>
           <Button
             mode="text"

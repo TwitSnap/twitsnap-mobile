@@ -6,6 +6,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "react-native-paper";
@@ -39,8 +40,15 @@ const TwitScreen = ({ route }) => {
         await fetchPost();
       }
     };
-
-    fetchPostData();
+    console.log(twitId);
+    if (twitId === "deleted") {
+      navigation.goBack();
+      Alert.alert("Deleted", "This tweet has been deleted", [{ text: "OK" }], {
+        cancelable: false,
+      });
+    } else {
+      fetchPostData();
+    }
   }, [twitId]);
 
   useEffect(() => {
@@ -65,6 +73,14 @@ const TwitScreen = ({ route }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#1E88E5" />
+      </View>
+    );
+  }
+
+  if (twitId == "deleted") {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.deletedMessage}>This tweet has been deleted</Text>
       </View>
     );
   }
@@ -143,6 +159,13 @@ const styles = StyleSheet.create({
   noCommentsText: {
     textAlign: "center",
     color: "#999",
+    marginTop: 40,
+  },
+  deletedMessage: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FF5252",
+    textAlign: "center",
     marginTop: 40,
   },
 });
