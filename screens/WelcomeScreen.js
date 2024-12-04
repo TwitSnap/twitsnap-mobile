@@ -23,6 +23,7 @@ import PostTwitHandler from "../handlers/PostTwitHandler";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
 import Feed from "../components/Feed";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
@@ -89,6 +90,11 @@ const WelcomeScreen = () => {
             onPress={handleViewProfile}
           />
         </TouchableOpacity>
+        <IconButton
+          icon={() => <Ionicons name="chatbubbles" size={28} />}
+          onPress={() => navigation.navigate("ChatListScreen")}
+          style={styles.iconButton}
+        />
         <IconButton
           icon="magnify"
           color="#1E88E5"

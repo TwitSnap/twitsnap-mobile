@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import Favorites from "../components/Favorites"; 
+import Favorites from "../components/Favorites";
 
 const FavoritesScreen = ({ route }) => {
-  const { userId } = route.params; 
+  const { userId } = route.params;
 
   return (
     <View style={styles.container}>

@@ -31,9 +31,7 @@ const LoginHandler = async (email, password) => {
           await AsyncStorage.setItem("token", token);
           return 0;
         case 401:
-          return new Error(
-            "Incorrect email or password. Please check your credentials and try again.",
-          );
+          return new Error(responseJson.title);
         default:
           console.log(
             `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,

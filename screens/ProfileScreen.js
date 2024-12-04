@@ -27,9 +27,11 @@ import * as ImagePicker from "expo-image-picker";
 import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import GetProfileHandler from "../handlers/GetProfileHandler";
 import GetUserStatsHandler from "../handlers/GetUserStatsHandler";
+import GetUserStatsFollowHandler from "../handlers/GetUserStatsFollowHandler";
 import CustomButton from "../components/CustomButton";
 import MyFeed from "../components/MyFeed";
 import FollowButton from "../components/FollowButton";
+import CreateChatButton from "../components/CreateChatButton";
 import CountryPicker, { Flag } from "react-native-country-picker-modal";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -65,7 +67,15 @@ const ProfileScreen = () => {
   const handleStatsPress = async () => {
     const formattedDate = startDate.toISOString().split("T")[0];
     const statsData = await GetUserStatsHandler(formattedDate);
-    setStats(statsData);
+    const statsDataFollow = await GetUserStatsFollowHandler(
+      formattedDate,
+      loggedInUser?.uid,
+    );
+    const combinedStats = {
+      ...statsData,
+      ...statsDataFollow,
+    };
+    setStats(combinedStats);
     setShowStats(true);
   };
 
@@ -309,6 +319,8 @@ const ProfileScreen = () => {
                   <Text>Likes♥: {stats.likes}</Text>
                   <Text>Shares🔁: {stats.shares}</Text>
                   <Text>Comments📩: {stats.comments}</Text>
+                  <Text>Followers🧑‍🤝‍🧑: {stats.followers_gained}</Text>
+                  <Text>Following🔍: {stats.following_gained}</Text>
                 </View>
               )}
               <TouchableOpacity
@@ -450,6 +462,8 @@ const ProfileScreen = () => {
           followersCount={followers}
           followingCount={following}
         />
+
+        <CreateChatButton userId={userId} username={username} photo={photo} />
 
         <Card style={styles.card}>
           <Card.Title title="Bio" />

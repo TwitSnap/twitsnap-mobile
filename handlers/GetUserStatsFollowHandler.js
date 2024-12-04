@@ -1,46 +1,51 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GATEWAY_URL, RETRIES } from "../constants";
-import { Alert } from "react-native";
 
 const headers = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
 };
 
-const GetMyProfileHandler = async () => {
+// Handler to fetch user statistics with required parameters
+const GetUserStatsFollowHandler = async (from_date, user_id) => {
   let retries = 0;
   const maxRetries = RETRIES;
+
   while (retries < maxRetries) {
     try {
+      // Retrieve token and user_id for authentication
       const token = await AsyncStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("User is not authenticated. No token found.");
+      if (!token || !user_id) {
+        throw new Error(
+          "User is not authenticated. Token or user_id not found.",
+        );
       }
 
       const authHeaders = {
         ...headers,
         Authorization: `Bearer ${token}`,
+        user_id: user_id,
       };
-      const response = await fetch(`${GATEWAY_URL}/api/v1/users/me`, {
+
+      const url = `${GATEWAY_URL}/api/v1/users/me/stats?from_date=${from_date}`;
+
+      const response = await fetch(url, {
         method: "GET",
         headers: authHeaders,
       });
 
       const responseJson = await response.json();
       console.log(responseJson);
-
-      switch (response.status) {
-        case 200:
-          return responseJson;
-        default:
-          console.log(
-            `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
-          );
-          retries++;
+      if (response.status === 200) {
+        return responseJson; // Successfully retrieved user statistics
+      } else {
+        console.log(
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
+        );
+        retries++;
       }
     } catch (error) {
-      console.log("Error fetching user profile: ", error);
+      console.log("Error fetching user stats: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
       retries++;
 
@@ -51,4 +56,4 @@ const GetMyProfileHandler = async () => {
   }
 };
 
-export default GetMyProfileHandler;
+export default GetUserStatsFollowHandler;
