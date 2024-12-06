@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { TextInput, List, Text } from "react-native-paper";
+import { TextInput, List, Text, IconButton } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import UsersSearchHandler from "../handlers/UsersSearchHandler";
 import GetUserRecommendationsHandler from "../handlers/GetUserRecommendationsHandler";
@@ -18,16 +18,26 @@ const SearchProfileScreen = () => {
   const [searchText, setSearchText] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [recommendedUsers, setRecommendedUsers] = useState([]);
+  const [allRecommendedUsers, setAllRecommendedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const limit = 10;
 
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        const recommendations = await GetUserRecommendationsHandler();
-        setRecommendedUsers(recommendations);
+        const recommendations = await GetUserRecommendationsHandler(offset, limit);
+        setAllRecommendedUsers(recommendations);
+        setRecommendedUsers((prev) =>
+        [...prev, ...recommendations].slice(0, 5)
+      ); 
+        setOffset((prev) => prev + limit);
         setLoading(false);
-      } catch (error) {}
+      } catch (error) {
+        setLoading(false);
+        console.error("Error fetching recommendations:", error);
+      }
     };
     fetchRecommendations();
   }, []);
@@ -50,6 +60,24 @@ const SearchProfileScreen = () => {
     navigation.navigate("ProfileScreen", { userId: userId });
   };
 
+  const getNewRecommendation = async () => {
+    try {
+        const recommendations = await GetUserRecommendationsHandler(offset, 1);
+        setAllRecommendedUsers((prev) => [...prev, ...recommendations]);
+        setOffset((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+      }
+  };
+
+  const removeRecommendation = (userId) => {
+    setRecommendedUsers((prev) => prev.filter((user) => user.id !== userId));
+    setRecommendedUsers((prev) =>
+        [...prev, ...allRecommendedUsers.slice(6, 7)]
+    ); 
+    getNewRecommendation();
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -70,23 +98,31 @@ const SearchProfileScreen = () => {
                 data={recommendedUsers}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => handleSelectUser(item.id)}
-                    style={styles.recommendationItem}
-                  >
-                    <List.Item
-                      title={item.username}
-                      style={styles.userItem}
-                      left={() => (
-                        <List.Image
-                          source={{
-                            uri: `${item.photo}?timestamp=${new Date().getTime()}`,
-                          }}
-                          style={styles.avatar}
-                        />
-                      )}
+                  <View style={styles.recommendationItem}>
+                    <TouchableOpacity
+                      onPress={() => handleSelectUser(item.id)}
+                      style={styles.userItemContainer}
+                    >
+                      <List.Item
+                        title={item.username}
+                        style={styles.userItem}
+                        left={() => (
+                          <List.Image
+                            source={{
+                              uri: `${item.photo}?timestamp=${new Date().getTime()}`,
+                            }}
+                            style={styles.avatar}
+                          />
+                        )}
+                      />
+                    </TouchableOpacity>
+                    <IconButton
+                      icon="close"
+                      size={20}
+                      onPress={() => removeRecommendation(item.id)}
+                      style={styles.removeButton}
                     />
-                  </TouchableOpacity>
+                  </View>
                 )}
                 style={styles.recommendationsList}
               />
@@ -145,10 +181,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#E3F2FD",
   },
   userItem: {
-    width: "100%",
+    width: "80%",
     paddingVertical: 10,
     marginVertical: 6,
     paddingHorizontal: 0,
+  },
+  userItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
   list: {
     width: "100%",
@@ -171,7 +212,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   recommendationItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginRight: 10,
+  },
+  removeButton: {
+    alignSelf: "center",
   },
   filteredContainer: {
     marginBottom: 20,

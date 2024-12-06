@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#E3F2FD",
   },
   messageList: {
     flexGrow: 1,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "#E3F2FD",
   },
   inputContainerWithKeyboard: {
     marginBottom: 20,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Switch,
+  FlatList
 } from "react-native";
 import {
   Appbar,
@@ -20,9 +21,10 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PostTwitHandler from "../handlers/PostTwitHandler";
+import TrendingTopics from "../components/TrendingTopics";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
-import Feed from "../components/Feed";
+
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const WelcomeScreen = () => {
@@ -35,6 +37,7 @@ const WelcomeScreen = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  
 
   const handleLogout = async () => {
     await AsyncStorage.clear();
@@ -74,6 +77,7 @@ const WelcomeScreen = () => {
     setRefreshKey((prevKey) => prevKey + 1);
   };
 
+ 
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
@@ -119,8 +123,9 @@ const WelcomeScreen = () => {
           onPress={handleRefreshFeed}
         />
       </View>
+  
+      <TrendingTopics key={refreshKey} userId={loggedInUser.user_id}/>
 
-      <Feed key={refreshKey} userId={loggedInUser.user_id} />
 
       <FAB
         style={styles.fab}

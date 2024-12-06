@@ -25,6 +25,8 @@ import GoogleLoginHandler from "../handlers/GoogleLoginHandler";
 import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
 import { auth } from "../firebaseConfig";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import messaging from '@react-native-firebase/messaging';
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -98,6 +100,12 @@ const LoginScreen = () => {
     }
   };
 
+  const requestFCMToken = async () => {
+  const token = await messaging().getToken();
+  console.log('FCM Token:', token);
+  // Envía este token a tu servidor para notificaciones push
+  };
+
   const handleLogin = async () => {
     setEmailError(email === "");
     setPasswordError(password === "");
@@ -109,6 +117,7 @@ const LoginScreen = () => {
     setIsLoading(true);
 
     try {
+      await requestFCMToken();
       const result = await LoginHandler(email, password);
       if (result === 0) {
         const profileData = await GetMyProfileHandler();
