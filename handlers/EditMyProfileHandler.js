@@ -6,11 +6,13 @@ const headers = {
 };
 
 const EditMyProfileHandler = async (
-  username,
-  phone,
-  country,
-  description,
-  photo,
+  username = undefined,
+  phone = undefined,
+  country = undefined,
+  description = undefined,
+  photo = undefined,
+  interests = undefined,
+  device_token = undefined,
 ) => {
   let retries = 0;
   const maxRetries = RETRIES;
@@ -43,6 +45,16 @@ const EditMyProfileHandler = async (
         formData.append("description", description);
       }
 
+      if (interests) {
+        interests.forEach((interest) => {
+          formData.append("interests", interest);
+        });
+      }
+
+      if (device_token) {
+        formData.append("device_token", device_token);
+      }
+
       if (photo) {
         const uriParts = photo.split(".");
         const fileType = uriParts[uriParts.length - 1];
@@ -59,7 +71,7 @@ const EditMyProfileHandler = async (
         headers: authHeaders,
         body: formData,
       });
-      console.log(formData);
+      console.log(response);
       const responseJson = await response.json();
 
       if (response.status === 200) {

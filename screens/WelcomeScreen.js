@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   Switch,
-  FlatList
 } from "react-native";
 import {
   Appbar,
@@ -17,6 +16,8 @@ import {
   Button,
   Avatar,
   Text,
+  Checkbox,
+  Paragraph,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,6 +25,7 @@ import PostTwitHandler from "../handlers/PostTwitHandler";
 import TrendingTopics from "../components/TrendingTopics";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
+import CustomButton from "../components/CustomButton";
 
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -37,7 +39,42 @@ const WelcomeScreen = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
-  
+  const [interests, setInterests] = useState([]);
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const getStoredInterests = async () => {
+      try {
+        const storedInterests = await AsyncStorage.getItem("interests");
+        if (storedInterests) {
+          setInterests(JSON.parse(storedInterests)); // Convierte de JSON a array
+        }
+      } catch (error) {
+        console.error("Error retrieving interests:", error);
+      }
+    };
+
+    getStoredInterests();
+  }, []);
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const toggleInterest = (interest) => {
+    setSelectedInterests((prevInterests) => {
+      if (prevInterests.includes(interest)) {
+        return prevInterests.filter((item) => item !== interest);
+      } else {
+        return [...prevInterests, interest];
+      }
+    });
+  };
 
   const handleLogout = async () => {
     await AsyncStorage.clear();
@@ -61,7 +98,7 @@ const WelcomeScreen = () => {
 
   const handlePostTwit = async () => {
     try {
-      await PostTwitHandler(body, tags.split(","), isPrivate);
+      await PostTwitHandler(body, selectedInterests, isPrivate);
       setModalVisible(false);
       setBody("");
       setTags("");
@@ -77,7 +114,6 @@ const WelcomeScreen = () => {
     setRefreshKey((prevKey) => prevKey + 1);
   };
 
- 
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
@@ -123,9 +159,8 @@ const WelcomeScreen = () => {
           onPress={handleRefreshFeed}
         />
       </View>
-  
-      <TrendingTopics key={refreshKey} userId={loggedInUser.user_id}/>
 
+      <TrendingTopics key={refreshKey} userId={loggedInUser.user_id} />
 
       <FAB
         style={styles.fab}
@@ -149,12 +184,58 @@ const WelcomeScreen = () => {
               onChangeText={setBody}
               multiline
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Tags (separated by commas)"
-              value={tags}
-              onChangeText={setTags}
-            />
+            <TouchableOpacity onPress={handleOpenModal}>
+              <TextInput
+                value={selectedInterests.join(", ")}
+                placeholder="Select Tags"
+                editable={false}
+                style={styles.input}
+              />
+            </TouchableOpacity>
+            <Modal
+              visible={showModal}
+              onRequestClose={handleCloseModal}
+              transparent={true}
+              animationType="slide"
+            >
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                }}
+              >
+                <View
+                  style={{
+                    width: "80%",
+                    backgroundColor: "#fff",
+                    borderRadius: 8,
+                    padding: 20,
+                  }}
+                >
+                  <Text style={{ fontSize: 18, marginBottom: 10 }}>
+                    Select Tags
+                  </Text>
+
+                  {interests.map((interest) => (
+                    <View key={interest} style={styles.checkboxContainer}>
+                      <Checkbox
+                        status={
+                          selectedInterests.includes(interest)
+                            ? "checked"
+                            : "unchecked"
+                        }
+                        onPress={() => toggleInterest(interest)}
+                      />
+                      <Paragraph>{interest}</Paragraph>
+                    </View>
+                  ))}
+
+                  <CustomButton title="Done" onPress={handleCloseModal} />
+                </View>
+              </View>
+            </Modal>
             <View style={styles.switchContainer}>
               <Switch value={isPrivate} onValueChange={setIsPrivate} />
               <Text style={styles.switchLabel}>Private</Text>
@@ -259,6 +340,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
     color: "#0D47A1",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
 });
 

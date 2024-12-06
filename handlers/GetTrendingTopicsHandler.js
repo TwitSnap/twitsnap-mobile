@@ -6,7 +6,7 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const GetTrendingTopicsHandler = async (offset = 0, limit = 10) => {
+const GetTrendingTopicsHandler = async (offset = 0, limit = 5) => {
   let retries = 0;
   const maxRetries = RETRIES;
 
@@ -31,11 +31,10 @@ const GetTrendingTopicsHandler = async (offset = 0, limit = 10) => {
         },
       );
 
-    
       if (response.ok) {
         const data = await response.json();
         console.log(data);
-        return data; 
+        return data;
       }
 
       switch (response.status) {

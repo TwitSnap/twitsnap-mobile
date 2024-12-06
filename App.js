@@ -4,6 +4,7 @@ import AppNavigator from "./navigation/AppNavigator";
 import { UserProvider } from "./contexts/UserContext";
 import * as Linking from "expo-linking";
 import { LogBox } from "react-native";
+import { configureNotifications } from "./NotificationService";
 
 LogBox.ignoreAllLogs(true);
 
@@ -15,6 +16,7 @@ const handleDeepLink = (event) => {
 
 const App = () => {
   useEffect(() => {
+    configureNotifications();
     Linking.addEventListener("url", handleDeepLink);
     return () => {
       Linking.removeEventListener("url", handleDeepLink);

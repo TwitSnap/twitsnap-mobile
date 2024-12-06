@@ -27,11 +27,14 @@ const SearchProfileScreen = () => {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        const recommendations = await GetUserRecommendationsHandler(offset, limit);
+        const recommendations = await GetUserRecommendationsHandler(
+          offset,
+          limit,
+        );
         setAllRecommendedUsers(recommendations);
         setRecommendedUsers((prev) =>
-        [...prev, ...recommendations].slice(0, 5)
-      ); 
+          [...prev, ...recommendations].slice(0, 5),
+        );
         setOffset((prev) => prev + limit);
         setLoading(false);
       } catch (error) {
@@ -62,19 +65,20 @@ const SearchProfileScreen = () => {
 
   const getNewRecommendation = async () => {
     try {
-        const recommendations = await GetUserRecommendationsHandler(offset, 1);
-        setAllRecommendedUsers((prev) => [...prev, ...recommendations]);
-        setOffset((prev) => prev + 1);
-      } catch (error) {
-        console.error("Error fetching recommendations:", error);
-      }
+      const recommendations = await GetUserRecommendationsHandler(offset, 1);
+      setAllRecommendedUsers((prev) => [...prev, ...recommendations]);
+      setOffset((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+    }
   };
 
   const removeRecommendation = (userId) => {
     setRecommendedUsers((prev) => prev.filter((user) => user.id !== userId));
-    setRecommendedUsers((prev) =>
-        [...prev, ...allRecommendedUsers.slice(6, 7)]
-    ); 
+    setRecommendedUsers((prev) => [
+      ...prev,
+      ...allRecommendedUsers.slice(6, 7),
+    ]);
     getNewRecommendation();
   };
 

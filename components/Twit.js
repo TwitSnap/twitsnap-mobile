@@ -51,6 +51,23 @@ const Twit = ({ post, onDelete }) => {
     return null;
   }
 
+  const mentionRegex = /(@[a-zA-Z0-9_]+)/g;
+
+  // Function to render post content with highlighted mentions
+  const renderContentWithMentions = (content) => {
+    const parts = content.split(mentionRegex); // Split text by mentions
+    return parts.map((part, index) => {
+      if (mentionRegex.test(part)) {
+        return (
+          <Text key={index} style={styles.mentionText}>
+            {part}
+          </Text>
+        );
+      }
+      return <Text key={index}>{part}</Text>;
+    });
+  };
+
   const handleDeleteTwit = async () => {
     // Llamamos a la función onDelete pasándole el post_id para eliminarlo
     if (onDelete) {
@@ -225,7 +242,16 @@ const Twit = ({ post, onDelete }) => {
           </View>
         </View>
 
-        <Text style={styles.postContent}>{post.message}</Text>
+        <Text style={styles.postContent}>
+          {renderContentWithMentions(post.message)}
+        </Text>
+
+        {Array.isArray(post.tags) && post.tags.length > 0 && (
+          <Text style={styles.tagsText}>
+            {post.tags.map((tag) => `#${tag.trim()}`).join(" ")}
+          </Text>
+        )}
+
         <View style={styles.commentContainer}>
           <TouchableOpacity onPress={handleLike}>
             <Text style={styles.comment}>
@@ -457,6 +483,15 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     color: "#FF0000",
+  },
+  mentionText: {
+    color: "#1E88E5", // You can customize the color of mentions
+    fontWeight: "bold",
+  },
+  tagsText: {
+    fontSize: 12,
+    color: "#1E88E5", // Azul
+    marginTop: 5,
   },
 });
 

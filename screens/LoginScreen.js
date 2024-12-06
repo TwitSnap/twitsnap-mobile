@@ -16,6 +16,7 @@ import {
   HelperText,
   Divider,
 } from "react-native-paper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
@@ -23,10 +24,11 @@ import { useUser } from "../contexts/UserContext";
 import LoginHandler from "../handlers/LoginHandler";
 import GoogleLoginHandler from "../handlers/GoogleLoginHandler";
 import GetMyProfileHandler from "../handlers/GetMyProfileHandler";
+import EditMyProfileHandler from "../handlers/EditMyProfileHandler";
 import { auth } from "../firebaseConfig";
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
-import messaging from '@react-native-firebase/messaging';
-
+import messaging from "@react-native-firebase/messaging";
+import GetInterestsHandler from "../handlers/GetInterestsHandler";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -45,6 +47,16 @@ const LoginScreen = () => {
     clientId:
       "450665613455-2rldm4tb9moq4o4if0g78jjf75rckamg.apps.googleusercontent.com",
   });
+
+  const fetchInterests = async () => {
+    try {
+      const interestsData = await GetInterestsHandler();
+      console.log(interestsData);
+      await AsyncStorage.setItem("interests", JSON.stringify(interestsData));
+    } catch (error) {
+      console.error("Error fetching interests:", error);
+    }
+  };
 
   useEffect(() => {
     if (response && response.type === "success") {
@@ -100,10 +112,29 @@ const LoginScreen = () => {
     }
   };
 
-  const requestFCMToken = async () => {
-  const token = await messaging().getToken();
-  console.log('FCM Token:', token);
-  // Envía este token a tu servidor para notificaciones push
+  const registerForPushNotificationsAsync = async () => {
+    const authorizationStatus = await messaging().requestPermission();
+
+    if (
+      authorizationStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authorizationStatus === messaging.AuthorizationStatus.PROVISIONAL
+    ) {
+      const token = await messaging().getToken();
+      console.log(token);
+      if (token) {
+        await EditMyProfileHandler(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          token,
+        );
+      }
+    } else {
+      console.log("Permission not granted");
+    }
   };
 
   const handleLogin = async () => {
@@ -117,8 +148,8 @@ const LoginScreen = () => {
     setIsLoading(true);
 
     try {
-      await requestFCMToken();
       const result = await LoginHandler(email, password);
+      fetchInterests();
       if (result === 0) {
         const profileData = await GetMyProfileHandler();
         setLoggedInUser(profileData);
@@ -128,6 +159,7 @@ const LoginScreen = () => {
             email: profileData.email,
           });
         } else {
+          await registerForPushNotificationsAsync();
           navigation.reset({
             index: 0,
             routes: [{ name: "WelcomeScreen" }],

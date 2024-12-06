@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
   Alert,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import {
   TextInput,
@@ -13,11 +14,14 @@ import {
   Card,
   HelperText,
   Divider,
+  Checkbox,
+  Text,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import CustomButton from "../components/CustomButton";
 import RegisterHandler from "../handlers/RegisterHandler";
+import GetInterestsHandler from "../handlers/GetInterestsHandler";
 import CountryPicker from "react-native-country-picker-modal";
 
 const RegisterScreen = () => {
@@ -36,6 +40,21 @@ const RegisterScreen = () => {
   const [passwordLengthError, setPasswordLengthError] = useState(false);
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [interests, setInterests] = useState([]);
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        const interestsData = await GetInterestsHandler();
+        setInterests(interestsData); // Uncomment this when you fetch data
+      } catch (error) {
+        console.error("Error fetching interests:", error);
+      }
+    };
+    fetchInterests();
+  }, []);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -74,6 +93,7 @@ const RegisterScreen = () => {
         password,
         phone,
         country,
+        selectedInterests, // Enviar los intereses seleccionados
       );
 
       if (result && result.uid) {
@@ -94,6 +114,24 @@ const RegisterScreen = () => {
     }
   };
 
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const toggleInterest = (interest) => {
+    setSelectedInterests((prevInterests) => {
+      if (prevInterests.includes(interest)) {
+        return prevInterests.filter((item) => item !== interest);
+      } else {
+        return [...prevInterests, interest];
+      }
+    });
+  };
+
   return (
     <ScrollView keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
@@ -101,6 +139,7 @@ const RegisterScreen = () => {
         <Paragraph style={styles.subtitle}>Create a new account</Paragraph>
         <Card style={styles.card}>
           <Card.Content>
+            {/* Campos de input para el registro */}
             <TextInput
               style={styles.input}
               theme={{ colors: { primary: "#1E88E5" } }}
@@ -156,8 +195,67 @@ const RegisterScreen = () => {
             <HelperText type="error" visible={false}>
               Just here for adding space between the 2 inputs.
             </HelperText>
+            <Divider style={styles.divider} />
+
+            {/* Sección de selección de intereses */}
+            <TouchableOpacity onPress={handleOpenModal}>
+              <TextInput
+                value={selectedInterests.join(", ")}
+                placeholder="Select Interests"
+                editable={false}
+                style={styles.input}
+              />
+            </TouchableOpacity>
+            <View style={{ marginBottom: 50 }} />
+            {/* Modal para mostrar la lista de checkboxes */}
+            <Modal
+              visible={showModal}
+              onRequestClose={handleCloseModal}
+              transparent={true}
+              animationType="slide"
+            >
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                }}
+              >
+                <View
+                  style={{
+                    width: "80%",
+                    backgroundColor: "#fff",
+                    borderRadius: 8,
+                    padding: 20,
+                  }}
+                >
+                  <Text style={{ fontSize: 18, marginBottom: 10 }}>
+                    Select Interests
+                  </Text>
+
+                  {interests.map((interest) => (
+                    <View key={interest} style={styles.checkboxContainer}>
+                      <Checkbox
+                        status={
+                          selectedInterests.includes(interest)
+                            ? "checked"
+                            : "unchecked"
+                        }
+                        onPress={() => toggleInterest(interest)}
+                      />
+                      <Paragraph>{interest}</Paragraph>
+                    </View>
+                  ))}
+
+                  <CustomButton title="Done" onPress={handleCloseModal} />
+                </View>
+              </View>
+            </Modal>
 
             <Divider style={styles.divider} />
+
+            {/* Password fields */}
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.input}
@@ -213,6 +311,8 @@ const RegisterScreen = () => {
               Passwords do not match
             </HelperText>
             <Divider style={styles.divider} />
+
+            {/* Botón de registro */}
             <CustomButton
               title="Register"
               onPress={handleRegister}
@@ -258,6 +358,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     padding: 18,
     borderBottomWidth: 0.2,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
   eyeIcon: {
     position: "absolute",

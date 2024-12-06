@@ -13,14 +13,19 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.theojorge.twitsnapmobile"
+      "package": "com.theojorge.twitsnapmobile",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +34,9 @@
       "eas": {
         "projectId": "09462a02-bc33-4b23-9b83-8d07ecec6512"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/09462a02-bc33-4b23-9b83-8d07ecec6512"
     }
   }
 }

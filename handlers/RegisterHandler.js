@@ -6,13 +6,21 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
 };
 
-const RegisterHandler = async (username, email, password, phone, country) => {
+const RegisterHandler = async (
+  username,
+  email,
+  password,
+  phone,
+  country,
+  interests,
+) => {
   const requestBody = {
     username: username,
     email: email,
     password: password,
     phone: phone,
     country: country,
+    interests: interests,
   };
 
   let retries = 0;

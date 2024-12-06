@@ -16,6 +16,8 @@ import {
   Button,
   HelperText,
   Avatar,
+  Checkbox,
+  Paragraph,
   Appbar,
   Menu,
 } from "react-native-paper";
@@ -63,6 +65,8 @@ const ProfileScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const [interests, setInterests] = useState([]);
+  const [selectedInterests, setSelectedInterests] = useState([]);
 
   const handleStatsPress = async () => {
     const formattedDate = startDate.toISOString().split("T")[0];
@@ -145,6 +149,7 @@ const ProfileScreen = () => {
           setNewCountry(loggedInUser.country);
           setFollowers(loggedInUser.amount_of_followers);
           setFollowing(loggedInUser.amount_of_following);
+          setSelectedInterests(loggedInUser.interests);
           setLoading(false);
         } catch (error) {
           console.error("Failed to load authenticated user profile", error);
@@ -186,6 +191,18 @@ const ProfileScreen = () => {
       setLoading(false);
     };
 
+    const getStoredInterests = async () => {
+      try {
+        const storedInterests = await AsyncStorage.getItem("interests");
+        if (storedInterests) {
+          setInterests(JSON.parse(storedInterests)); // Convierte de JSON a array
+        }
+      } catch (error) {
+        console.error("Error retrieving interests:", error);
+      }
+    };
+
+    getStoredInterests();
     loadProfile();
   }, []);
 
@@ -217,6 +234,8 @@ const ProfileScreen = () => {
         newCountry !== country ? newCountry : undefined,
         newBio !== bio ? newBio : undefined,
         editingPhoto ? newPhoto : undefined,
+        selectedInterests.length > 0 ? selectedInterests : undefined,
+        undefined,
       );
       setLoggedInUser(profileData);
 
@@ -230,6 +249,7 @@ const ProfileScreen = () => {
       setNewPhoto(`${profileData.photo}?timestamp=${new Date().getTime()}`);
       setCountry(profileData.country);
       setNewCountry(profileData.country);
+      setSelectedInterests(profileData.interests || []);
 
       setIsEditableLoading(false);
       setEditingPhoto(false);
@@ -238,6 +258,7 @@ const ProfileScreen = () => {
       console.error("Failed to save profile data", error);
       Alert.alert("Error", error.message);
     }
+    setIsEditableLoading(false);
   };
 
   const handleImagePick = async () => {
@@ -274,6 +295,24 @@ const ProfileScreen = () => {
     setNewUsername(username);
     setNewBio(loggedInUser.description);
     setNewCountry(country);
+  };
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const toggleInterest = (interest) => {
+    setSelectedInterests((prevInterests) => {
+      if (prevInterests.includes(interest)) {
+        return prevInterests.filter((item) => item !== interest);
+      } else {
+        return [...prevInterests, interest];
+      }
+    });
   };
 
   if (allowEdit) {
@@ -405,6 +444,79 @@ const ProfileScreen = () => {
               />
             </Card.Content>
           </Card>
+        )}
+
+        {editing ? (
+          <>
+            {/* Interests section in the Card */}
+            <Card style={styles.card}>
+              <Card.Title title="Interests" />
+              <Card.Content>
+                <TouchableOpacity
+                  onPress={handleOpenModal}
+                  style={styles.interestsTouchable}
+                >
+                  <TextInput
+                    value={selectedInterests.join(", ")}
+                    placeholder="Select Interests"
+                    editable={false}
+                    style={styles.input}
+                  />
+                </TouchableOpacity>
+              </Card.Content>
+            </Card>
+
+            {/* Modal for selecting interests */}
+            <Modal
+              visible={showModal}
+              onRequestClose={handleCloseModal}
+              transparent={true}
+              animationType="slide"
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalBox}>
+                  <TouchableOpacity
+                    onPress={handleCloseModal}
+                    style={styles.closeButton}
+                  >
+                    <Ionicons name="close" size={24} color="#000" />
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>Select Interests</Text>
+
+                  {/* List of interests with checkboxes */}
+                  {interests.map((interest) => (
+                    <View key={interest} style={styles.checkboxContainer}>
+                      <Checkbox
+                        status={
+                          selectedInterests.includes(interest)
+                            ? "checked"
+                            : "unchecked"
+                        }
+                        onPress={() => toggleInterest(interest)}
+                      />
+                      <Paragraph>{interest}</Paragraph>
+                    </View>
+                  ))}
+
+                  <CustomButton title="Done" onPress={handleCloseModal} />
+                </View>
+              </View>
+            </Modal>
+          </>
+        ) : (
+          <>
+            {/* Non-editing mode for Interests */}
+            <Card style={styles.card}>
+              <Card.Title title="Interests" />
+              <Card.Content>
+                <Text>
+                  {selectedInterests.length > 0
+                    ? selectedInterests.join(", ")
+                    : "No interests specified"}
+                </Text>
+              </Card.Content>
+            </Card>
+          </>
         )}
 
         {isEditableLoading ? ( // Si está cargando, mostrar ActivityIndicator
@@ -635,6 +747,11 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginRight: -140,
     paddingHorizontal: 140,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
 });
 

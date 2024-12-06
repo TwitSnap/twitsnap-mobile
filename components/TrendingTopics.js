@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import GetTrendingTopicsHandler from "../handlers/GetTrendingTopicsHandler";
 import Feed from "./Feed";
 
@@ -11,7 +17,7 @@ const TrendingTopics = (userId) => {
     const loadTrendingTopics = async () => {
       try {
         const topics = await GetTrendingTopicsHandler(0, 10);
-        setTrendingTopics(topics);
+        setTrendingTopics(topics || []);
       } catch (error) {
         console.error("Error fetching trending topics:", error);
       }
@@ -23,13 +29,15 @@ const TrendingTopics = (userId) => {
   // Manejar selección de un tag
   const handleTagSelect = (topic) => {
     // Si el tag seleccionado es el mismo que el actual, deselecciónalo
-    setSelectedTag((prevSelectedTag) => (prevSelectedTag === topic ? null : topic));
+    setSelectedTag((prevSelectedTag) =>
+      prevSelectedTag === topic ? null : topic,
+    );
   };
 
   return (
     <View style={styles.container}>
       {/* Contenedor de tags */}
-       <Text style={styles.title}>Trending Topics</Text>
+      <Text style={styles.title}>Trending Topics</Text>
       <View style={styles.tagsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {trendingTopics.map(([topic, count], index) => (
@@ -66,12 +74,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
   },
-   title: {
-  fontSize: 18,
-  fontWeight: "bold",
-  color: "#0D47A1",
-  textAlign: "center", // Centrar horizontalmente
-},
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0D47A1",
+    textAlign: "center", // Centrar horizontalmente
+  },
   tag: {
     backgroundColor: "#1E88E5",
     paddingVertical: 6,

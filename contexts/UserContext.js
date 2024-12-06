@@ -12,6 +12,7 @@ export const UserProvider = ({ children }) => {
         bio: "",
         photo: "about:blank",
         country: "",
+        interests: [],
       };
 
       setLoggedInUser(noUser);

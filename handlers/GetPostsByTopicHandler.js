@@ -27,7 +27,7 @@ const GetPostsByTopicHandler = async (tag, offset = 0, limit = 10) => {
         {
           method: "GET",
           headers: authHeaders,
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -36,7 +36,7 @@ const GetPostsByTopicHandler = async (tag, offset = 0, limit = 10) => {
         return posts;
       } else {
         console.log(
-          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
         );
         retries++;
       }

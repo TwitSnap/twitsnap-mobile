@@ -26,7 +26,7 @@ const Feed = ({ userId, selectedTag }) => {
       const handler = selectedTag ? GetPostsByTopicHandler : GetFeedHandler;
       const response = selectedTag
         ? await handler(selectedTag, 0, 5)
-        : await handler( 0, 5);
+        : await handler(0, 5);
       setPosts(response.posts || []);
       setHasMore(response.posts.length === limit);
       setOffset((prevOffset) => prevOffset + limit);
