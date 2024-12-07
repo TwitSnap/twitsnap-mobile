@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "886715413049",
+    "project_id": "twitsnap-82671",
+    "storage_bucket": "twitsnap-82671.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:886715413049:android:7635f47654cb8b5f4793e8",
+        "android_client_info": {
+          "package_name": "com.theojorge.twitsnapmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQpBtjGW6YQRH0j5lhVfvweC-8etDYerw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

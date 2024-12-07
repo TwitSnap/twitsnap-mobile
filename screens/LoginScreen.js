@@ -42,7 +42,7 @@ const LoginScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId:
       "450665613455-2rldm4tb9moq4o4if0g78jjf75rckamg.apps.googleusercontent.com",
@@ -57,6 +57,35 @@ const LoginScreen = () => {
       console.error("Error fetching interests:", error);
     }
   };
+
+  useEffect(() => {
+    // Comprobar si ya existe un token en AsyncStorage
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          const profileData = await GetMyProfileHandler();
+          setLoggedInUser(profileData);
+          if (!profileData.verified) {
+          navigation.navigate("VerifyPinScreen", {
+            user_id: profileData.uid,
+            email: profileData.email,
+          });
+        } else {
+          await registerForPushNotificationsAsync();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "WelcomeScreen" }],
+          });
+        }}
+      } catch (error) {
+        console.error("Error checking token:", error);
+      }
+      setIsLoadingInitial(false); 
+    };
+
+    checkToken();
+  }, []);
 
   useEffect(() => {
     if (response && response.type === "success") {
@@ -99,6 +128,7 @@ const LoginScreen = () => {
             email: profileData.email,
           });
         } else {
+          await registerForPushNotificationsAsync();
           navigation.reset({
             index: 0,
             routes: [{ name: "WelcomeScreen" }],
@@ -185,6 +215,15 @@ const LoginScreen = () => {
   const handleForgotPassword = () => {
     navigation.navigate("ForgotPasswordScreen");
   };
+
+    if (isLoadingInitial) {
+    // Pantalla de carga inicial
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E88E5" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>

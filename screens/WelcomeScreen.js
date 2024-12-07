@@ -26,13 +26,15 @@ import TrendingTopics from "../components/TrendingTopics";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
 import CustomButton from "../components/CustomButton";
-
+import messaging from '@react-native-firebase/messaging';
+import PushNotification from 'react-native-push-notification';
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
   const { loggedInUser } = useUser();
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalNotificationVisible, setModalNotificationVisible] = useState(false);
   const [body, setBody] = useState("");
   const [tags, setTags] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -42,6 +44,54 @@ const WelcomeScreen = () => {
   const [interests, setInterests] = useState([]);
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0); 
+  const [notifications, setNotifications] = useState([]);
+
+ 
+
+ const loadNotifications = async () => {
+    try {
+      const existingNotifications = await AsyncStorage.getItem("notifications");
+      if (existingNotifications) {
+        const parsedNotifications = JSON.parse(existingNotifications);
+        setNotifications(parsedNotifications);
+
+        // Calcular cantidad de notificaciones no leídas
+        const unreadCount = parsedNotifications.filter(
+          (notification) => !notification.read
+        ).length;
+        setUnreadNotifications(unreadCount);
+      }
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    }
+  };
+
+  // Eliminar notificación del estado y de AsyncStorage
+  const handleDeleteNotification = async (index) => {
+    try {
+      setNotifications((prevNotifications) => {
+        const updatedNotifications = prevNotifications.filter((_, i) => i !== index);
+         const unreadCount = updatedNotifications.filter((notification) => !notification.read).length;
+         setUnreadNotifications(unreadCount)
+        // Guardar notificaciones actualizadas en AsyncStorage
+        AsyncStorage.setItem(
+          "notifications",
+          JSON.stringify(updatedNotifications)
+        );
+
+        return updatedNotifications;
+      });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Cargar las notificaciones al montar el componente
+    loadNotifications();
+  }, []);
+
 
   useEffect(() => {
     const getStoredInterests = async () => {
@@ -64,6 +114,7 @@ const WelcomeScreen = () => {
 
   const handleCloseModal = () => {
     setShowModal(false);
+     setModalNotificationVisible(false);
   };
 
   const toggleInterest = (interest) => {
@@ -114,6 +165,10 @@ const WelcomeScreen = () => {
     setRefreshKey((prevKey) => prevKey + 1);
   };
 
+  const handleNotificationPress= () => {
+    setModalNotificationVisible(true);
+  };
+
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
@@ -142,6 +197,21 @@ const WelcomeScreen = () => {
           onPress={handleSearchProfile}
           style={styles.iconButton}
         />
+       <TouchableOpacity onPress={handleNotificationPress} style={styles.notificationButton}>
+          <IconButton
+            icon="bell"
+            color="#FF4081" // Color de la campana
+            size={28}
+            style={styles.iconButton}
+          />
+          {unreadNotifications > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>
+                {unreadNotifications}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
         <IconButton
           icon="logout"
           color="#1E88E5"
@@ -168,6 +238,47 @@ const WelcomeScreen = () => {
         color="#FFFFFF"
         onPress={() => setModalVisible(true)}
       />
+
+      <Modal
+  visible={modalNotificationVisible}
+  animationType="slide"
+  transparent={true}
+  onRequestClose={() => setModalNotificationVisible(false)} // Asegúrate de usar el correcto setModal
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContainer}>
+      {/* Botón para cerrar el modal */}
+      <TouchableOpacity
+        style={styles.closeIcon}
+        onPress={() => setModalNotificationVisible(false)}
+      >
+        <Ionicons name="close" size={24} color="#e74c3c" />
+      </TouchableOpacity>
+
+      <Text style={styles.modalTitle}>Notifications</Text>
+      {notifications.length > 0 ? (
+        notifications.map((notification, index) => (
+          <View key={index} style={styles.notificationCard}>
+            <Text style={styles.notificationTitle}>
+              {notification.title}
+            </Text>
+            <Text style={styles.notificationBody}>
+              {notification.body}
+            </Text>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDeleteNotification(index)}
+            >
+              <Ionicons name="close" size={24} color="#000"/>
+            </TouchableOpacity>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.emptyMessage}>No notifications</Text>
+      )}
+    </View>
+  </View>
+</Modal>
 
       <Modal
         visible={modalVisible}
@@ -345,6 +456,64 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+  },
+  notificationButton: {
+    position: "relative",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: -2,
+    right: -6,
+    backgroundColor: "#FF4081",
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  notificationBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  notificationCard: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  notificationBody: {
+    fontSize: 14,
+    color: "#555",
+    marginTop: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  closeIcon: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 1, 
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 10, // Ajusta según sea necesario
+    right: 10, // Ajusta según sea necesario
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    zIndex: 1, // Asegura que el botón se muestre encima
   },
 });
 

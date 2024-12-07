@@ -73,14 +73,15 @@ const EditMyProfileHandler = async (
       });
       console.log(response);
       const responseJson = await response.json();
-
+      console.log(responseJson);
       if (response.status === 200) {
         return responseJson;
       } else if (response.status === 422) {
-        throw new Error(
-          "Validation error: " + JSON.stringify(responseJson.detail),
-        );
-      } else {
+          return responseJson;
+      } else if (response.status === 409) {
+          return responseJson;
+      }
+       else {
         retries++;
         console.log(
           `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,

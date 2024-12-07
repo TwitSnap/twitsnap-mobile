@@ -17,6 +17,8 @@ const handleDeepLink = (event) => {
 const App = () => {
   useEffect(() => {
     configureNotifications();
+
+
     Linking.addEventListener("url", handleDeepLink);
     return () => {
       Linking.removeEventListener("url", handleDeepLink);

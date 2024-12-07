@@ -236,9 +236,14 @@ const ProfileScreen = () => {
         editingPhoto ? newPhoto : undefined,
         selectedInterests.length > 0 ? selectedInterests : undefined,
         undefined,
-      );
+      ); 
+      console.log(profileData);
+      if (profileData.message) {
+        Alert.alert("Error", profileData.message);
+        setIsEditableLoading(false);
+        return;
+      }
       setLoggedInUser(profileData);
-
       // Have to update it like this instead of using loggedInUser
       // cause value doesn't update until next call.
       setUsername(profileData.username);
@@ -255,7 +260,7 @@ const ProfileScreen = () => {
       setEditingPhoto(false);
       Alert.alert("Success", "Profile updated successfully!");
     } catch (error) {
-      console.error("Failed to save profile data", error);
+      console.error("Failed to save profile data", error.message);
       Alert.alert("Error", error.message);
     }
     setIsEditableLoading(false);

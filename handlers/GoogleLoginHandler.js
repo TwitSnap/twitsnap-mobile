@@ -26,7 +26,6 @@ const GoogleLoginHandler = async (token) => {
       );
 
       const responseJson = await response.json();
-      const responseString = JSON.stringify(responseJson, null, 2);
       console.log(responseJson);
 
       switch (response.status) {
@@ -45,7 +44,7 @@ const GoogleLoginHandler = async (token) => {
           retries++;
       }
     } catch (error) {
-      Alert.alert("Response", error.message);
+      
       console.log("Error encountered: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
 
