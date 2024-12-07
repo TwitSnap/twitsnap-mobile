@@ -18,13 +18,16 @@ const VerifyPinHandler = async (user_id, pin) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(
-        `${GATEWAY_URL}/api/v1/users/confirmation?id=${user_id}&pin=${pin}`,
-        {
-          method: "POST",
-          headers: authHeaders,
-        },
-      );
+      const requestBody = JSON.stringify({
+        id: user_id,
+        pin: pin,
+      });
+
+      const response = await fetch(`${GATEWAY_URL}/api/v1/users/confirmation`, {
+        method: "POST",
+        headers: authHeaders,
+        body: requestBody,
+      });
 
       console.log(response);
       const responseJson = await response.json();

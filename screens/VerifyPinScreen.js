@@ -13,7 +13,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import CustomButton from "../components/CustomButton";
 import VerifyRegisterPinHandler from "../handlers/VerifyPinHandler";
 import ResendPinHandler from "../handlers/ResendPinHandler";
-import requestFCMToken from "./LoginScreen";
+import registerForPushNotificationsAsync from "./LoginScreen";
 
 const VerifyPinScreen = () => {
   const navigation = useNavigation();
@@ -33,7 +33,7 @@ const VerifyPinScreen = () => {
         const result = await VerifyRegisterPinHandler(user_id, Pin);
         if (result == 0) {
           Alert.alert("Success", "Account registered successfully");
-          await requestFCMToken();
+          await registerForPushNotificationsAsync();
           navigation.navigate("WelcomeScreen");
         } else {
           Alert.alert(
