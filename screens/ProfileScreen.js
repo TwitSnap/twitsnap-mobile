@@ -236,7 +236,7 @@ const ProfileScreen = () => {
         editingPhoto ? newPhoto : undefined,
         selectedInterests.length > 0 ? selectedInterests : undefined,
         undefined,
-      ); 
+      );
       console.log(profileData);
       if (profileData.message) {
         Alert.alert("Error", profileData.message);

@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { TextInput, List, Text, IconButton } from "react-native-paper";
+import { TextInput, List, Text, IconButton, Button } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import UsersSearchHandler from "../handlers/UsersSearchHandler";
 import GetUserRecommendationsHandler from "../handlers/GetUserRecommendationsHandler";
+import SearchFeed from "../components/SearchFeed";
+import useDebounce from "../components/useDebounce";
 
 const usersSearchHandler = new UsersSearchHandler();
 
@@ -19,14 +21,19 @@ const SearchProfileScreen = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [recommendedUsers, setRecommendedUsers] = useState([]);
   const [allRecommendedUsers, setAllRecommendedUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const loading = loadingRecommendations || loadingSearch;
+  const [searchingPosts, setSearchingPosts] = useState(false); // Nuevo estado
+  const debounceTime = 500;
+  const debouncedSearchText = useDebounce(searchText, debounceTime);
   const [offset, setOffset] = useState(0);
   const limit = 10;
 
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        setLoading(true);
+        setLoadingRecommendations(true);
         const recommendations = await GetUserRecommendationsHandler(
           offset,
           limit,
@@ -36,28 +43,43 @@ const SearchProfileScreen = () => {
           [...prev, ...recommendations].slice(0, 5),
         );
         setOffset((prev) => prev + limit);
-        setLoading(false);
+        setLoadingRecommendations(false);
       } catch (error) {
-        setLoading(false);
+        setLoadingRecommendations(false);
         console.error("Error fetching recommendations:", error);
       }
     };
-    fetchRecommendations();
-  }, []);
+    if (!searchingPosts) fetchRecommendations();
+  }, [searchingPosts]);
 
-  const handleSearch = async (text) => {
-    setSearchText(text);
-    setLoading(true);
+  useEffect(() => {
+    const handleSearch = async () => {
+      setLoadingSearch(true);
 
-    if (text) {
-      const users = await usersSearchHandler.searchUsers(text);
-      setFilteredUsers(users);
-    } else {
-      usersSearchHandler.cleanSearch();
-      setFilteredUsers([]);
-    }
-    setLoading(false);
-  };
+      if (debouncedSearchText) {
+        try {
+          if (!searchingPosts) {
+            // Buscar usuarios
+            const users =
+              await usersSearchHandler.searchUsers(debouncedSearchText);
+            setFilteredUsers(users);
+          }
+        } catch (error) {
+          console.error("Error during search:", error);
+        }
+      } else {
+        // Limpiar búsqueda
+        if (!searchingPosts) {
+          usersSearchHandler.cleanSearch();
+          setFilteredUsers([]);
+        }
+      }
+
+      setLoadingSearch(false);
+    };
+
+    handleSearch();
+  }, [debouncedSearchText, searchingPosts]);
 
   const handleSelectUser = (userId) => {
     navigation.navigate("ProfileScreen", { userId: userId });
@@ -82,86 +104,100 @@ const SearchProfileScreen = () => {
     getNewRecommendation();
   };
 
+  const toggleSearchType = () => {
+    setSearchingPosts((prev) => !prev);
+    setFilteredUsers([]);
+    setSearchText("");
+  };
+
   return (
     <View style={styles.container}>
+      <Button
+        mode="contained"
+        onPress={toggleSearchType}
+        style={styles.toggleButton}
+      >
+        {searchingPosts ? "Search Users" : "Search Twits"}
+      </Button>
+
       <TextInput
-        label="Enter username"
+        label={searchingPosts ? "Search Twits" : "Search Users"}
         value={searchText}
-        onChangeText={handleSearch}
+        onChangeText={setSearchText}
         theme={{ colors: { primary: "#1E88E5" } }}
         style={styles.input}
       />
+
       {loading ? (
         <ActivityIndicator size="large" color="#1E88E5" style={{ flex: 1 }} />
-      ) : (
-        <>
-          {filteredUsers.length === 0 && recommendedUsers.length > 0 && (
-            <View style={styles.recommendationsContainer}>
-              <Text style={styles.recommendationsTitle}>Recommended Users</Text>
-              <FlatList
-                data={recommendedUsers}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <View style={styles.recommendationItem}>
-                    <TouchableOpacity
-                      onPress={() => handleSelectUser(item.id)}
-                      style={styles.userItemContainer}
-                    >
-                      <List.Item
-                        title={item.username}
-                        style={styles.userItem}
-                        left={() => (
-                          <List.Image
-                            source={{
-                              uri: `${item.photo}?timestamp=${new Date().getTime()}`,
-                            }}
-                            style={styles.avatar}
-                          />
-                        )}
+      ) : searchingPosts ? (
+        // Mostrar tuits encontrados
+        <SearchFeed searchQuery={searchText} />
+      ) : filteredUsers.length > 0 ? (
+        // Mostrar usuarios encontrados
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item) => item.uid.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => handleSelectUser(item.uid)}
+              style={styles.recommendationItem}
+            >
+              <List.Item
+                title={item.username}
+                left={() => (
+                  <List.Image
+                    source={{
+                      uri: `${item.photo}?timestamp=${new Date().getTime()}`,
+                    }}
+                    style={styles.avatar}
+                  />
+                )}
+                style={styles.userItem}
+              />
+            </TouchableOpacity>
+          )}
+          style={styles.recommendationsList}
+        />
+      ) : recommendedUsers.length > 0 ? (
+        // Mostrar usuarios recomendados
+        <View style={styles.recommendationsContainer}>
+          <Text style={styles.recommendationsTitle}>Recommended Users</Text>
+          <FlatList
+            data={recommendedUsers}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.recommendationItem}>
+                <TouchableOpacity
+                  onPress={() => handleSelectUser(item.id)}
+                  style={styles.userItemContainer}
+                >
+                  <List.Item
+                    title={item.username}
+                    style={styles.userItem}
+                    left={() => (
+                      <List.Image
+                        source={{
+                          uri: `${item.photo}?timestamp=${new Date().getTime()}`,
+                        }}
+                        style={styles.avatar}
                       />
-                    </TouchableOpacity>
-                    <IconButton
-                      icon="close"
-                      size={20}
-                      onPress={() => removeRecommendation(item.id)}
-                      style={styles.removeButton}
-                    />
-                  </View>
-                )}
-                style={styles.recommendationsList}
-              />
-            </View>
-          )}
-
-          {filteredUsers.length > 0 && (
-            <View style={styles.filteredContainer}>
-              <FlatList
-                data={filteredUsers}
-                keyExtractor={(item) => item.uid.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => handleSelectUser(item.uid)}
-                    style={styles.recommendationItem}
-                  >
-                    <List.Item
-                      title={item.username}
-                      style={styles.userItem}
-                      left={() => (
-                        <List.Image
-                          source={{
-                            uri: `${item.photo}?timestamp=${new Date().getTime()}`,
-                          }}
-                          style={styles.avatar}
-                        />
-                      )}
-                    />
-                  </TouchableOpacity>
-                )}
-                style={styles.recommendationsList}
-              />
-            </View>
-          )}
-        </>
+                    )}
+                  />
+                </TouchableOpacity>
+                <IconButton
+                  icon="close"
+                  size={20}
+                  onPress={() => removeRecommendation(item.id)}
+                  style={styles.removeButton}
+                />
+              </View>
+            )}
+            style={styles.recommendationsList}
+          />
+        </View>
+      ) : (
+        <Text style={styles.noResultsText}>No results found.</Text>
       )}
     </View>
   );
@@ -170,8 +206,7 @@ const SearchProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
+
     paddingHorizontal: 16,
     paddingTop: 20,
     backgroundColor: "#E3F2FD",
@@ -232,6 +267,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+  },
+  toggleButton: {
+    marginBottom: 10,
+    backgroundColor: "#1E88E5",
+    width: 150,
+    height: 45,
+    alignSelf: "center",
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: "#757575",
+    textAlign: "center",
+    marginTop: 20,
   },
 });
 

@@ -2,11 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GATEWAY_URL, RETRIES } from "../constants";
 
 const headers = {
-  "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
 };
 
-const PostTwitHandler = async (body, tags, isPrivate = true) => {
+const GetPostsBySearchHandler = async (search, offset = 0, limit = 10) => {
   let retries = 0;
   const maxRetries = RETRIES;
 
@@ -23,32 +22,27 @@ const PostTwitHandler = async (body, tags, isPrivate = true) => {
         Authorization: `Bearer ${token}`,
       };
 
-      const response = await fetch(`${GATEWAY_URL}/v1/twit`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({
-          body,
-          tags,
-          is_private: isPrivate,
-        }),
-      });
-      console.log(response);
+      const response = await fetch(
+        `${GATEWAY_URL}/v1/twit/posts/search?search=${encodeURIComponent(search)}&offset=${offset}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        },
+      );
 
-      switch (response.status) {
-        case 204:
-          return 0;
-        case 400:
-          return 1;
-        default:
-          console.log(
-            `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
-          );
-          retries++;
+      if (response.ok) {
+        const posts = await response.json();
+        console.log("Posts fetched successfully:", posts);
+        return posts;
+      } else {
+        console.error(
+          `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,
+        );
+        retries++;
       }
     } catch (error) {
-      console.log("Error posting twit: ", error);
+      console.error("Error fetching posts by search:", error);
       console.log(`Retrying... attempt ${retries + 1}`);
-
       retries++;
 
       if (retries >= maxRetries) {
@@ -58,4 +52,4 @@ const PostTwitHandler = async (body, tags, isPrivate = true) => {
   }
 };
 
-export default PostTwitHandler;
+export default GetPostsBySearchHandler;

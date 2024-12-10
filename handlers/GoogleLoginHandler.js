@@ -44,7 +44,6 @@ const GoogleLoginHandler = async (token) => {
           retries++;
       }
     } catch (error) {
-      
       console.log("Error encountered: ", error);
       console.log(`Retrying... attempt ${retries + 1}`);
 

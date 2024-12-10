@@ -42,7 +42,7 @@ const LoginScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId:
       "450665613455-2rldm4tb9moq4o4if0g78jjf75rckamg.apps.googleusercontent.com",
@@ -67,21 +67,22 @@ const LoginScreen = () => {
           const profileData = await GetMyProfileHandler();
           setLoggedInUser(profileData);
           if (!profileData.verified) {
-          navigation.navigate("VerifyPinScreen", {
-            user_id: profileData.uid,
-            email: profileData.email,
-          });
-        } else {
-          await registerForPushNotificationsAsync();
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "WelcomeScreen" }],
-          });
-        }}
+            navigation.navigate("VerifyPinScreen", {
+              user_id: profileData.uid,
+              email: profileData.email,
+            });
+          } else {
+            await registerForPushNotificationsAsync();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "WelcomeScreen" }],
+            });
+          }
+        }
       } catch (error) {
         console.error("Error checking token:", error);
       }
-      setIsLoadingInitial(false); 
+      setIsLoadingInitial(false);
     };
 
     checkToken();
@@ -216,7 +217,7 @@ const LoginScreen = () => {
     navigation.navigate("ForgotPasswordScreen");
   };
 
-    if (isLoadingInitial) {
+  if (isLoadingInitial) {
     // Pantalla de carga inicial
     return (
       <View style={styles.loadingContainer}>

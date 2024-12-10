@@ -77,11 +77,10 @@ const EditMyProfileHandler = async (
       if (response.status === 200) {
         return responseJson;
       } else if (response.status === 422) {
-          return responseJson;
+        return responseJson;
       } else if (response.status === 409) {
-          return responseJson;
-      }
-       else {
+        return responseJson;
+      } else {
         retries++;
         console.log(
           `Unexpected response status: ${response.status}. Retrying... attempt ${retries + 1}`,

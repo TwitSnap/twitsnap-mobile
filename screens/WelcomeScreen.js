@@ -18,6 +18,7 @@ import {
   Text,
   Checkbox,
   Paragraph,
+  HelperText,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,17 +27,19 @@ import TrendingTopics from "../components/TrendingTopics";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
 import CustomButton from "../components/CustomButton";
-import messaging from '@react-native-firebase/messaging';
-import PushNotification from 'react-native-push-notification';
+import messaging from "@react-native-firebase/messaging";
+import PushNotification from "react-native-push-notification";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
   const { loggedInUser } = useUser();
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalNotificationVisible, setModalNotificationVisible] = useState(false);
+  const [modalNotificationVisible, setModalNotificationVisible] =
+    useState(false);
   const [body, setBody] = useState("");
   const [tags, setTags] = useState("");
+  const [errorMessage, setErrorMessage] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -44,12 +47,10 @@ const WelcomeScreen = () => {
   const [interests, setInterests] = useState([]);
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(0); 
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [notifications, setNotifications] = useState([]);
 
- 
-
- const loadNotifications = async () => {
+  const loadNotifications = async () => {
     try {
       const existingNotifications = await AsyncStorage.getItem("notifications");
       if (existingNotifications) {
@@ -58,7 +59,7 @@ const WelcomeScreen = () => {
 
         // Calcular cantidad de notificaciones no leídas
         const unreadCount = parsedNotifications.filter(
-          (notification) => !notification.read
+          (notification) => !notification.read,
         ).length;
         setUnreadNotifications(unreadCount);
       }
@@ -71,13 +72,17 @@ const WelcomeScreen = () => {
   const handleDeleteNotification = async (index) => {
     try {
       setNotifications((prevNotifications) => {
-        const updatedNotifications = prevNotifications.filter((_, i) => i !== index);
-         const unreadCount = updatedNotifications.filter((notification) => !notification.read).length;
-         setUnreadNotifications(unreadCount)
+        const updatedNotifications = prevNotifications.filter(
+          (_, i) => i !== index,
+        );
+        const unreadCount = updatedNotifications.filter(
+          (notification) => !notification.read,
+        ).length;
+        setUnreadNotifications(unreadCount);
         // Guardar notificaciones actualizadas en AsyncStorage
         AsyncStorage.setItem(
           "notifications",
-          JSON.stringify(updatedNotifications)
+          JSON.stringify(updatedNotifications),
         );
 
         return updatedNotifications;
@@ -91,7 +96,6 @@ const WelcomeScreen = () => {
     // Cargar las notificaciones al montar el componente
     loadNotifications();
   }, []);
-
 
   useEffect(() => {
     const getStoredInterests = async () => {
@@ -114,7 +118,7 @@ const WelcomeScreen = () => {
 
   const handleCloseModal = () => {
     setShowModal(false);
-     setModalNotificationVisible(false);
+    setModalNotificationVisible(false);
   };
 
   const toggleInterest = (interest) => {
@@ -149,13 +153,21 @@ const WelcomeScreen = () => {
 
   const handlePostTwit = async () => {
     try {
-      await PostTwitHandler(body, selectedInterests, isPrivate);
-      setModalVisible(false);
-      setBody("");
-      setTags("");
-      setIsPrivate(false);
-      setSnackbarMessage("Twit published successfully!");
-      setSnackbarVisible(true);
+      const response = await PostTwitHandler(
+        body,
+        selectedInterests,
+        isPrivate,
+      );
+      if (response == 0) {
+        setModalVisible(false);
+        setBody("");
+        setTags("");
+        setIsPrivate(false);
+        setSnackbarMessage("Twit published successfully!");
+        setSnackbarVisible(true);
+      } else if (response == 1) {
+        setErrorMessage(true);
+      }
     } catch (error) {
       console.error("Error posting twit:", error);
     }
@@ -165,7 +177,7 @@ const WelcomeScreen = () => {
     setRefreshKey((prevKey) => prevKey + 1);
   };
 
-  const handleNotificationPress= () => {
+  const handleNotificationPress = () => {
     setModalNotificationVisible(true);
   };
 
@@ -197,7 +209,10 @@ const WelcomeScreen = () => {
           onPress={handleSearchProfile}
           style={styles.iconButton}
         />
-       <TouchableOpacity onPress={handleNotificationPress} style={styles.notificationButton}>
+        <TouchableOpacity
+          onPress={handleNotificationPress}
+          style={styles.notificationButton}
+        >
           <IconButton
             icon="bell"
             color="#FF4081" // Color de la campana
@@ -240,45 +255,45 @@ const WelcomeScreen = () => {
       />
 
       <Modal
-  visible={modalNotificationVisible}
-  animationType="slide"
-  transparent={true}
-  onRequestClose={() => setModalNotificationVisible(false)} // Asegúrate de usar el correcto setModal
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContainer}>
-      {/* Botón para cerrar el modal */}
-      <TouchableOpacity
-        style={styles.closeIcon}
-        onPress={() => setModalNotificationVisible(false)}
+        visible={modalNotificationVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalNotificationVisible(false)} // Asegúrate de usar el correcto setModal
       >
-        <Ionicons name="close" size={24} color="#e74c3c" />
-      </TouchableOpacity>
-
-      <Text style={styles.modalTitle}>Notifications</Text>
-      {notifications.length > 0 ? (
-        notifications.map((notification, index) => (
-          <View key={index} style={styles.notificationCard}>
-            <Text style={styles.notificationTitle}>
-              {notification.title}
-            </Text>
-            <Text style={styles.notificationBody}>
-              {notification.body}
-            </Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {/* Botón para cerrar el modal */}
             <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteNotification(index)}
+              style={styles.closeIcon}
+              onPress={() => setModalNotificationVisible(false)}
             >
-              <Ionicons name="close" size={24} color="#000"/>
+              <Ionicons name="close" size={24} color="#e74c3c" />
             </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Notifications</Text>
+            {notifications.length > 0 ? (
+              notifications.map((notification, index) => (
+                <View key={index} style={styles.notificationCard}>
+                  <Text style={styles.notificationTitle}>
+                    {notification.title}
+                  </Text>
+                  <Text style={styles.notificationBody}>
+                    {notification.body}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteNotification(index)}
+                  >
+                    <Ionicons name="close" size={24} color="#000" />
+                  </TouchableOpacity>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.emptyMessage}>No notifications</Text>
+            )}
           </View>
-        ))
-      ) : (
-        <Text style={styles.emptyMessage}>No notifications</Text>
-      )}
-    </View>
-  </View>
-</Modal>
+        </View>
+      </Modal>
 
       <Modal
         visible={modalVisible}
@@ -295,6 +310,9 @@ const WelcomeScreen = () => {
               onChangeText={setBody}
               multiline
             />
+            <HelperText type="error" visible={errorMessage}>
+              Text is required to twit
+            </HelperText>
             <TouchableOpacity onPress={handleOpenModal}>
               <TextInput
                 value={selectedInterests.join(", ")}
@@ -504,16 +522,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    zIndex: 1, 
+    zIndex: 1,
   },
   deleteButton: {
-    position: 'absolute',
-    top: 10, // Ajusta según sea necesario
-    right: 10, // Ajusta según sea necesario
+    position: "absolute",
+    top: 10, 
+    right: 10, 
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
-    zIndex: 1, // Asegura que el botón se muestre encima
+    zIndex: 1, 
   },
 });
 
