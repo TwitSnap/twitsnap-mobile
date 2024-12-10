@@ -51,7 +51,7 @@ const Twit = ({ post, onDelete }) => {
     return null;
   }
 
-  const mentionRegex = /(@[a-zA-Z0-9_]+)/g;
+  const mentionRegex = /(@[a-zA-Z0-9_]+|#[a-zA-Z0-9_]+)/g;
 
   // Function to render post content with highlighted mentions
   const renderContentWithMentions = (content) => {
