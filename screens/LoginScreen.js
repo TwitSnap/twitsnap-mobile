@@ -85,6 +85,7 @@ const LoginScreen = () => {
       setIsLoadingInitial(false);
     };
 
+    fetchInterests();
     checkToken();
   }, []);
 
@@ -118,7 +119,7 @@ const LoginScreen = () => {
       const token = await firebaseUser.user.getIdToken();
 
       const result = await GoogleLoginHandler(token);
-
+      fetchInterests();
       if (result === 0) {
         const profileData = await GetMyProfileHandler();
         setLoggedInUser(profileData);

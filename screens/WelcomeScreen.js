@@ -27,8 +27,6 @@ import TrendingTopics from "../components/TrendingTopics";
 import { Snackbar } from "react-native-paper";
 import { useUser } from "../contexts/UserContext";
 import CustomButton from "../components/CustomButton";
-import messaging from "@react-native-firebase/messaging";
-import PushNotification from "react-native-push-notification";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const WelcomeScreen = () => {
@@ -526,12 +524,12 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     position: "absolute",
-    top: 10, 
-    right: 10, 
+    top: 10,
+    right: 10,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
-    zIndex: 1, 
+    zIndex: 1,
   },
 });
 

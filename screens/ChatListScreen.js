@@ -81,13 +81,14 @@ const ChatListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5", // Fondo suave
+    backgroundColor: "#E3F2FD", // Fondo suave
     padding: 10,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#E3F2FD",
   },
   flatListContainer: {
     paddingBottom: 20,

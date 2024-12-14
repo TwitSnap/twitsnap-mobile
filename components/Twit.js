@@ -10,6 +10,7 @@ import {
   Switch,
   Alert,
 } from "react-native";
+import { Checkbox, Paragraph } from "react-native-paper";
 import { Button, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import LikePostHandler from "../handlers/LikePostHandler";
@@ -19,6 +20,8 @@ import FavoritePostHandler from "../handlers/FavoritePostHandler";
 import EditPostHandler from "../handlers/EditPostHandler";
 import DeletePostHandler from "../handlers/DeletePostHandler";
 import { useUser } from "../contexts/UserContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CustomButton from "../components/CustomButton";
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -44,8 +47,10 @@ const Twit = ({ post, onDelete }) => {
   const [isFavorited, setIsFavorited] = useState(post.favourite);
   const [modalVisible, setModalVisible] = useState(false);
   const [body, setBody] = useState(post.message);
-  const [tags, setTags] = useState(post.tags || "");
   const [isPrivate, setIsPrivate] = useState(post.is_private);
+  const [interests, setInterests] = useState([]);
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   if (!post) {
     return null;
@@ -92,14 +97,18 @@ const Twit = ({ post, onDelete }) => {
 
   const handleEditTwit = async () => {
     try {
-      const isSuccessful = await EditPostHandler(post.post_id, body, tags);
+      const isSuccessful = await EditPostHandler(
+        post.post_id,
+        body,
+        selectedInterests,
+      );
 
       if (!isSuccessful) {
         throw new Error("Failed to update the post.");
       }
 
       post.message = body;
-      post.tags = tags;
+      post.tags = selectedInterests;
       post.is_private = isPrivate;
 
       setModalVisible(false);
@@ -197,6 +206,38 @@ const Twit = ({ post, onDelete }) => {
         userId: post.created_by,
         key: post.created_by,
       },
+    });
+  };
+
+  const getStoredInterests = async () => {
+    try {
+      console.log("hola");
+      const storedInterests = await AsyncStorage.getItem("interests");
+      if (storedInterests) {
+        setInterests(JSON.parse(storedInterests)); // Convierte de JSON a array
+        console.log(interests);
+      }
+    } catch (error) {
+      console.error("Error retrieving interests:", error);
+    }
+  };
+
+  const handleOpenModal = async () => {
+    await getStoredInterests();
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const toggleInterest = (interest) => {
+    setSelectedInterests((prevInterests) => {
+      if (prevInterests.includes(interest)) {
+        return prevInterests.filter((item) => item !== interest);
+      } else {
+        return [...prevInterests, interest];
+      }
     });
   };
 
@@ -307,12 +348,58 @@ const Twit = ({ post, onDelete }) => {
                 onChangeText={setBody}
                 multiline
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Tags (separated by commas)"
-                value={tags}
-                onChangeText={setTags}
-              />
+              <TouchableOpacity onPress={handleOpenModal}>
+                <TextInput
+                  value={selectedInterests.join(", ")}
+                  placeholder="Select Tags"
+                  editable={false}
+                  style={styles.input}
+                />
+              </TouchableOpacity>
+              <Modal
+                visible={showModal}
+                onRequestClose={handleCloseModal}
+                transparent={true}
+                animationType="slide"
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: "80%",
+                      backgroundColor: "#fff",
+                      borderRadius: 8,
+                      padding: 20,
+                    }}
+                  >
+                    <Text style={{ fontSize: 18, marginBottom: 10 }}>
+                      Select Tags
+                    </Text>
+
+                    {interests.map((interest) => (
+                      <View key={interest} style={styles.checkboxContainer}>
+                        <Checkbox
+                          status={
+                            selectedInterests.includes(interest)
+                              ? "checked"
+                              : "unchecked"
+                          }
+                          onPress={() => toggleInterest(interest)}
+                        />
+                        <Paragraph>{interest}</Paragraph>
+                      </View>
+                    ))}
+
+                    <CustomButton title="Done" onPress={handleCloseModal} />
+                  </View>
+                </View>
+              </Modal>
               <View style={styles.buttonContainer}>
                 <Button
                   mode="contained"
@@ -492,6 +579,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#1E88E5", // Azul
     marginTop: 5,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
 });
 
