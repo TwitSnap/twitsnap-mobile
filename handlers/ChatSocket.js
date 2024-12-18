@@ -8,7 +8,7 @@ class WebSocketManager {
   async connect() {
     const token = await AsyncStorage.getItem("token");
     this.socket = new WebSocket(
-      "wss://twitsnap-gateway-iq0i.onrender.com/api/v1/chats/websocket",
+      "wss://twitsnap-gateway-2wy0.onrender.com/api/v1/chats/websocket",
       null,
       {
         headers: {
